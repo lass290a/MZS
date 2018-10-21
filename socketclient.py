@@ -20,6 +20,7 @@ class NetworkClient:
 	def sendData(self, strdata):
 		try:
 			self.sock.send(str(strdata).encode())
+			print(str(strdata))
 			response = self.sock.recv(1024).decode()
 			return response
 		except socket.timeout as errormsg:

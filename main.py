@@ -272,11 +272,13 @@ def conn_success():
 	player = world.player
 	puppet = world.find(type="Puppet")[0]
 	recv = eval(server.sendData(str({"name":"meatface"})))
-	world.create(Player, recv['players']['Player1']['position'])
+	world.player.x, world.player.y = recv['players']['Player1']['position']
 	def sendData():
 		while running:
 			recv = eval(server.sendData(str({"name":"meatface", 'position':(player.x, player.y) , 'rotation':player.angle, "fired":player.weapon1.fired})))
-			player.weapon1.fired = False
+			#print(str({"name":"meatface", 'position':(player.x, player.y) , 'rotation':player.angle, "fired":player.weapon1.fired}))
+			if recv['players']['Player1']['fired']:
+				player.weapon1.fired = False
 			try:
 				puppet.x, puppet.y = recv['players']['Player2']['position']
 				puppet.angle = recv['players']['Player2']['rotation']
