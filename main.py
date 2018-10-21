@@ -267,16 +267,21 @@ world.create(Puppet, [0, 0])
 
 def conn_success():
 	print("Connection success...")
-	#server.sendData(str({"name":"meatface"}))
 	player = world.find(type="Player")[0]
 	puppet = world.find(type="Puppet")[0]
+	recv = server.sendData(str({"name":"meatface"}))
+	world.create(Player, recv['players']['Player1']['position'])
 	def sendData():
 		while running:
-			recv = eval(server.sendData(str({"name":"meatface", 'position':(player.x, player.y) , 'rotation':player.angle})))
-			puppet.x, puppet.y = recv['players']['Player1']['position']
-			puppet.angle = recv['players']['Player1']['rotation']
-			puppet.find(type="Weapon1")[0].find(type="Weapon1Arm")[0].angle = recv['players']['Player1']['rotation']
-			puppet.find(type="Weapon1")[0].find(type="Weapon1Arm")[1].angle = recv['players']['Player1']['rotation']
+			recv = eval(server.sendData(str({"name":"meatface", 'position':(player.x, player.y) , 'rotation':player.angle, "fired":player.find(type="Weapon1")[0].fired})))
+			player.find(type="Weapon1")[0].fired = False
+			try:
+				puppet.x, puppet.y = recv['players']['Player2']['position']
+				puppet.angle = recv['players']['Player2']['rotation']
+				puppet.find(type="Weapon1")[0].find(type="Weapon1Arm")[0].angle = recv['players']['Player2']['rotation']
+				puppet.find(type="Weapon1")[0].find(type="Weapon1Arm")[1].angle = recv['players']['Player2']['rotation']
+			except:
+				pass
 	threading.Thread(target=sendData).start()
 
 def conn_error(a):
@@ -320,8 +325,8 @@ while running:
 				obj.run()
 			gameDisplay.blit(*obj.render())
 			#Debug
-			#gameDisplay.blit(pygame.transform.scale(sprites["cross"], (12, 12)), (obj.realX-6, obj.realY-6))
-			#gameDisplay.blit(consolasFont.render('"'+obj.type+(" #"+str(obj.id) if obj.id!=None else "")+'" '+("@"+obj.parent.type if obj.parent!=None else ""), False, (0, 0, 0)), (obj.realX+8, obj.realY+5))
+			gameDisplay.blit(pygame.transform.scale(sprites["cross"], (12, 12)), (obj.realX-6, obj.realY-6))
+			gameDisplay.blit(consolasFont.render('"'+obj.type+(" #"+str(obj.id) if obj.id!=None else "")+'" '+("@"+obj.parent.type if obj.parent!=None else ""), False, (0, 0, 0)), (obj.realX+8, obj.realY+5))
 	pygame.display.update()
 	clock.tick(60)
 sleep(0.5)
