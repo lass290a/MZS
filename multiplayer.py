@@ -26,7 +26,7 @@ class ThreadedServer(object):
 				if rawdata.startswith('{') and rawdata.endswith('}') and ';' not in rawdata:
 					data = eval(rawdata)
 				if data:
-					json_req = {f'{address[0]}:{address[1]}':data}
+					json_req = {f'{address[0]}':data}
 					response = self.events(json_req)
 					client.send(response.encode())
 				else:
