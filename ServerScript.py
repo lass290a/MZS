@@ -1,11 +1,6 @@
 from multiplayer import ThreadedServer
 
 server_data = {'players':{
-	'Player1':{
-		'name':'AlexBMJ',
-		'position':(0,0),
-		'rotation':90
-		}
 }}
 
 clients = {'192.168.0.10:43234':'Player1'}

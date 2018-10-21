@@ -22,7 +22,9 @@ class ThreadedServer(object):
 		size = 1024
 		while True:
 			try:
-				data = eval(client.recv(size).decode())
+				rawdata = client.recv(size).decode()
+				if rawdata.startswith('{') and rawdata.endswith('}') and ';' not in rawdata:
+					data = eval(rawdata)
 				if data:
 					json_req = {f'{address[0]}:{address[1]}':data}
 					response = self.events(json_req)
