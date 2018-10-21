@@ -13,16 +13,17 @@ def server_started():
 	print('Server is running!')
 
 def event_handler(raw_json):
-	address = str(list(json_events.keys())[0])
+	print(raw_json)
+	address = str(list(raw_json.keys())[0])
 	event_data = raw_json[address]
 
 	if 'start_connection' in list(event_data.keys()):
-		if event_data['start_connection']['name'] in [username[0] for username in list(s.values())]:
-			for user in [password for password in list(s.values())]:
+		if event_data['start_connection']['username'] in [username[0] for username in list(address_id.values())]:
+			for user in [password for password in list(address_id.values())]:
 				if event_data['start_connection']['username'] == user[0]:
 					if event_data['start_connection']['password'] == user[1]:
 						player_ref = event_data['start_connection']['username']
-						return server_data['player_data'][player_ref]
+						return str({'start_connection':server_data['player_data'][player_ref]})
 					else:
 						return str({'connection_denied':'wrong_password'})
 		else:
@@ -30,7 +31,7 @@ def event_handler(raw_json):
 			player_ref = event_data['start_connection']['username']
 			server_data['player_data'][player_ref] = {'position':(0,0)}
 			print('User Created!')
-			return server_data['player_data'][player_ref]
+			return str({'start_connection':server_data['player_data'][player_ref]})
 	else:
 		for user in address_id:
 			if address == user:
