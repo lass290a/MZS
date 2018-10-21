@@ -7,8 +7,12 @@ clients = {}
 
 test_json = {}
 
+def server_started():
+	print('Server is running!')
+
 
 def event_handler(json_events):
+	print(json_events)
 	ipaddress = str(list(json_events.keys())[0])
 	if 'name' in list(json_events[ipaddress].keys()):
 		if f"{ipaddress}:{json_events[ipaddress]['name']}" in clients:
@@ -23,4 +27,4 @@ def event_handler(json_events):
 	return str(server_data)
 
 
-ThreadedServer('',4422, event_handler).listen()
+ThreadedServer('',4422, event_handler, server_started).listen()

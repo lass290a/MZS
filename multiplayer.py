@@ -3,7 +3,8 @@ import threading
 import sys
 
 class ThreadedServer(object):
-	def __init__(self, host, port, events):
+	def __init__(self, host, port, events, callback):
+		self.callback = callback
 		self.events = events
 		self.host = host
 		self.port = port
@@ -11,8 +12,9 @@ class ThreadedServer(object):
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.sock.bind((self.host, self.port))
 
-	def listen(self): 
+	def listen(self):
 		self.sock.listen()
+		self.callback()
 		while True:
 			client, address = self.sock.accept()
 			client.settimeout(5)
@@ -23,7 +25,6 @@ class ThreadedServer(object):
 		while True:
 			try:
 				rawdata = client.recv(size).decode()
-				print(rawdata)
 				if rawdata.startswith('{') and rawdata.endswith('}') and ';' not in rawdata:
 					data = eval(rawdata)
 				if data:
