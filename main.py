@@ -5,10 +5,11 @@ import socketclient
 import threading
 from time import sleep
 
-#80.198.253.146
-serverAdress = ("localhost", 4422)
+serverAdress = ('localhost', 4422)
+serverAdress = ('80.198.253.146', 4422)
+user = ('meatface', '123ultraomegalul')
+versionText = 'Zython pre-beta'
 displayWidth, displayHeight = 1400, 700
-versionText = "Zython pre-beta"
 
 pygame.init()
 pygame.font.init()
@@ -35,7 +36,7 @@ def posToAng(x, y):
 	return 180+(-atan((y)/(x))*57.2957795+180*((x) < 0))
 
 class Object:
-	def __init__(self, sprite="nosprite", spriteSize=1, layer=5, x=0, y=0, angle=0, parent=None, id=None, relativePos=False, relativeAngle=False):
+	def __init__(self, sprite='nosprite', spriteSize=1, layer=5, x=0, y=0, angle=0, parent=None, relativePos=False, relativeAngle=False):
 		self.x=x
 		self.y=y
 		self.angle=angle
@@ -43,7 +44,6 @@ class Object:
 		self.relativePos=relativePos
 		self.relativeAngle=relativeAngle
 		self.type=self.__class__.__name__
-		self.id=None
 		self.layer=layer
 		self.spriteSize=spriteSize
 		if sprite != None:
@@ -52,24 +52,16 @@ class Object:
 		self.realX=0
 		self.realY=0
 		self.realAngle=0
-		self.idCount=0
 		self.subObjects=[]
 		self.pos=[]
 		self.realPos=[]
-		if parent!=None:
-			if id==None:
-				parent.idCount+=1
-				self.id=str(parent.idCount)
-			else:
-				self.id=id
 
-
-	def create(self, object, input=[]):
-		self.subObjects.append(object(parent=self, *input))
+	def create(self, object, input={}):
+		self.subObjects.append(object(parent=self, **input))
 		return self.subObjects[-1]
 
-	def delete(self, string=""):
-		if string=="":
+	def delete(self, string=''):
+		if string=='':
 			string=str(self.parent)
 
 		for obj in self.subObjects:
@@ -88,17 +80,12 @@ class Object:
 						self.parent.subObjects[0].delete(string)
 							
 
-	def find(self, id=None, type=None):
-		if id!=None:
-			for object in self.subObjects:
-				if object.id==id:
-					return object
-		if type!=None:
-			objecttype=[]
-			for object in self.subObjects:
-				if object.type==type:
-					objecttype.append(object)
-			return objecttype
+	def find(self, type):
+		objecttype=[]
+		for object in self.subObjects:
+			if object.type==type:
+				objecttype.append(object)
+		return objecttype
 
 	def render(self):
 		parent=None
@@ -127,10 +114,12 @@ class Object:
 class World(Object):
 	def __init__(self):
 		super().__init__(
-			layer=0)
-		self.player=self.create(Player, [0, 0])
-		self.noteText=self.create(Text, [5, displayHeight-14, "", (0, 0, 0)])
-		self.versionText=self.create(Text, [5, 5, versionText, (0, 0, 0)])
+			layer=0,
+			sprite='cross',
+			spriteSize=10)
+		self.player=self.create(Player, {'x':0, 'y':0})
+		self.noteText=self.create(Text, {'x':5, 'y':displayHeight-14, 'text':'', 'color':(0, 0, 0)})
+		self.versionText=self.create(Text, {'x':5, 'y':5, 'text':versionText, 'color':(0, 0, 0)})
 
 	def run(self):
 		try:
@@ -141,7 +130,7 @@ class World(Object):
 class Player(Object):
 	def __init__(self, x, y, parent):
 		super().__init__(
-			sprite="body",
+			sprite='body',
 			spriteSize=70,
 			layer=5,
 			x=x,
@@ -162,37 +151,38 @@ class Player(Object):
 		self.weapon1 = self.create(Weapon1)
 
 	def run(self):
-		if "a" in heldKeys:
+		if 'a' in heldKeys:
 			self.vectorX -=self.accel
-		if "d" in heldKeys:
+		if 'd' in heldKeys:
 			self.vectorX+=self.accel
-		if "w" in heldKeys:
+		if 'w' in heldKeys:
 			self.vectorY -=self.accel
-		if "s" in heldKeys:
+		if 's' in heldKeys:
 			self.vectorY+=self.accel
 		self.vectorX /=self.deaccel
 		self.vectorY /=self.deaccel
 		self.x+=self.vectorX
 		self.y+=self.vectorY
 		self.pointPos=[[self.realX, self.realY][i] - mousePos[i] for i in range(2)]
-		try: self.angle = posToAng(self.pointPos[0], self.pointPos[1])
+		try:self.angle = posToAng(self.pointPos[0], self.pointPos[1])
 		except ZeroDivisionError:
 			pass
 
 class Puppet(Object):
-	def __init__(self, x, y, parent):
+	def __init__(self, username, position, angle, parent):
 		super().__init__(
-			sprite="body",
+			sprite='body',
 			spriteSize=70,
 			layer=5,
-			x=x,
-			y=y,
+			x=position[0],
+			y=position[1],
+			angle=angle,
 			parent=parent,
 			relativePos=True)
 		self.states={}
-		self.pointPos=(-5, 0)
 		self.head = self.create(Head)
 		self.weapon1 = self.create(Weapon1)
+		self.username = username
 
 class Weapon1(Object):
 	def __init__(self, parent):
@@ -200,8 +190,8 @@ class Weapon1(Object):
 			layer=6,
 			parent=parent,
 			y=-60)
-		self.leftarm = self.create(Weapon1Arm, ["armleft"])
-		self.rightarm = self.create(Weapon1Arm, ["armright"])
+		self.leftarm = self.create(Weapon1Arm, {'side':'armleft'})
+		self.rightarm = self.create(Weapon1Arm, {'side':'armright'})
 		self.weaponClk=0
 		self.fired=False
 
@@ -212,7 +202,7 @@ class Weapon1(Object):
 
 class Weapon1Arm(Object):
 	def __init__(self, side, parent):
-		self.side=[-1, 1][side=="armleft"]
+		self.side=[-1, 1][side=='armleft']
 		super().__init__(
 			sprite=side,
 			spriteSize=180,
@@ -230,9 +220,9 @@ class Weapon1Arm(Object):
 
 	def run(self):
 		self.shootAngle /=1.2
-		if self.parent.parent.type == "Player":
+		if self.parent.parent.type == 'Player':
 			self.pointPos=[[self.realX, self.realY][i] - mousePos[i] for i in range(2)]
-			try: self.angle=posToAng(self.pointPos[0], self.pointPos[1])+self.shootAngle+self.side*-3
+			try:self.angle=posToAng(self.pointPos[0], self.pointPos[1])+self.shootAngle+self.side*-3
 			except ZeroDivisionError:
 				pass
 			self.realAngle = self.angle
@@ -242,7 +232,7 @@ class Weapon1Arm(Object):
 class Head(Object):
 	def __init__(self, parent):
 		super().__init__(
-			sprite="head",
+			sprite='head',
 			spriteSize=80,
 			layer=8,
 			parent=parent,
@@ -254,7 +244,7 @@ class Head(Object):
 class Muzzleflash(Object):
 	def __init__(self, parent):
 		super().__init__(
-			sprite="flash",
+			sprite='flash',
 			spriteSize=80,
 			parent=parent,
 			relativePos=True,
@@ -282,42 +272,45 @@ class Text(Object):
 		self.sprite = consolasFont.render(text, False, color)
 
 world=World()
-world.create(Puppet, [0, 0])
+world.create(Puppet, {'username':'', 'position':(0, 0), 'angle': 45})
 
 def conn_success():
-	print("Connection success...")
-	world.noteText.setText("Connected to "+serverAdress[0]+" on port "+str(serverAdress[1]), (0, 0, 0))
-	global connecting
+	print('Connection success...')
+	world.noteText.setText('Connected to '+serverAdress[0]+' on port '+str(serverAdress[1]), (0, 0, 0))
 	connecting = False
 	player = world.player
-	puppet = world.find(type="Puppet")[0]
-	recv = eval(server.sendData(str({"name":"meatface"})))
-	world.player.x, world.player.y = recv['players']['Player1']['position']
+	recv = eval(server.sendData(str({'start_connection':{'username':user[0], 'password':user[1]}})))
+	world.player.x, world.player.y = recv['start_connection']['position']
 	def sendData():
 		while running:
-			recv = eval(server.sendData(str({"name":"meatface", 'position':(player.x, player.y) , 'rotation':player.angle, "fired":player.weapon1.fired})))
-			#print(str({"name":"meatface", 'position':(player.x, player.y) , 'rotation':player.angle, "fired":player.weapon1.fired}))
-			if recv['players']['Player1']['fired']:
-				player.weapon1.fired = False
-			try:
-				puppet.x, puppet.y = recv['players']['Player2']['position']
-				puppet.angle = recv['players']['Player2']['rotation']
-				puppet.weapon1.rightarm.angle = recv['players']['Player2']['rotation']
-				puppet.weapon1.leftarm.angle = recv['players']['Player2']['rotation']
-				if recv['players']['Player2']['fired'] == True:
-					puppet.weapon1.fire()
-			except:
-				pass
+			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}})))
+			oldPuppetList = [puppet.username for puppet in world.find("Puppet")]
+			newPuppetList = recv['player_data']['players'].keys()
+			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
+			joinedList = list(set(newPuppetList)-set(oldPuppetList))
+			for puppet in world.find('Puppet'):
+				if puppet in disconnectedList:
+					puppet.delete()
+			for puppet in world.find('Puppet'):
+				puppet.x, puppet.y = recv['players'][puppet.username]['position']
+				puppet.angle = recv['players'][puppet.username]['angle']
+				puppet.weapon1.rightarm.angle = recv['players'][puppet.username]['angle']
+				puppet.weapon1.leftarm.angle = recv['players'][puppet.username]['angle']
+			for puppet in joinList:
+				world.create(Puppet, recv['player_data']['players'][puppet])
+				world.subObjects[-1].weapon1.rightarm.angle = recv['players'][puppet]['angle']
+				world.subObjects[-1].weapon1.leftarm.angle = recv['players'][puppet]['angle']
+
 	threading.Thread(target=sendData).start()
 
 def conn_error(a):
-	print("Connection error:", a)
-	global connecting
-	world.noteText.setText("Failed to connect", (0, 0, 0))
+	print('Connection error:', a)
+
+	world.noteText.setText('Failed to connect', (0, 0, 0))
 	connecting = False
 
 gameDisplay.fill((0, 0, 0))
-gameDisplay.blit(consolasFont.render("Connecting...", False, (255, 255, 255)), (displayWidth/2, displayHeight/2))
+gameDisplay.blit(consolasFont.render('Connecting...', False, (255, 255, 255)), (displayWidth/2, displayHeight/2))
 pygame.display.update()
 clock.tick(60)
 connecting = True
@@ -343,14 +336,14 @@ while running:
 				world.player.weapon1.fire()
 			except:
 				pass
-	if "" in heldKeys:
+	if '' in heldKeys:
 		running=False
-	if "r" in heldKeys:
+	if 'r' in heldKeys:
 		try:
 			world.player.weapon1.delete()
 		except:
 			pass
-	if "e" in pressedKeys:
+	if 'e' in pressedKeys:
 		try:
 			world.player.create(Weapon1)
 		except:
@@ -358,12 +351,12 @@ while running:
 	gameDisplay.fill((255, 255, 255))
 	for layer in layers:
 		for obj in layer:
-			if "run" in dir(obj):
+			if 'run' in dir(obj):
 				obj.run()
 			gameDisplay.blit(*obj.render())
 			#Debug
-			#gameDisplay.blit(pygame.transform.scale(sprites["cross"], (12, 12)), (obj.realX-6, obj.realY-6))
-			#gameDisplay.blit(consolasFont.render('"'+obj.type+(" #"+str(obj.id) if obj.id!=None else "")+'" '+("@"+obj.parent.type if obj.parent!=None else ""), False, (0, 0, 0)), (obj.realX+10, obj.realY+20))
+			#gameDisplay.blit(pygame.transform.scale(sprites['cross'], (12, 12)), (obj.realX-6, obj.realY-6))
+			#gameDisplay.blit(consolasFont.render('''+obj.type+' '+('@'+obj.parent.type if obj.parent!=None else ''), False, (0, 0, 0)), (obj.realX+10, obj.realY+20))
 	pygame.display.update()
 	clock.tick(60)
 sleep(0.5)
