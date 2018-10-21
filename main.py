@@ -280,19 +280,14 @@ def conn_success():
 	connecting = False
 	player = world.player
 	recv = eval(server.sendData(str({'start_connection':{'username':user[0], 'password':user[1]}})))
-	print(recv)
 	world.player.x, world.player.y = recv['start_connection']['position']
-	print("yeet")
 	def sendData():
 		while running:
-			print(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}}))
 			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}})))
-			print(recv)
 			oldPuppetList = [puppet.username for puppet in world.find("Puppet")]
 			newPuppetList = recv['player_data'].keys()
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
 			joinedList = list(set(newPuppetList)-set(oldPuppetList))
-			print('yeet')
 			for puppet in world.find('Puppet'):
 				if puppet in disconnectedList:
 					puppet.delete()
@@ -302,7 +297,8 @@ def conn_success():
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
 			for puppet in joinedList:
-				world.create(Puppet, recv['player_data']['player_data'][puppet])
+				print(recv['player_data'][puppet])
+				world.create(Puppet, recv['player_data'][puppet])
 				world.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
 				world.subObjects[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
 
