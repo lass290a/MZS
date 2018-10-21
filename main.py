@@ -64,6 +64,7 @@ class Object:
 
 	def create(self, object, input=[]):
 		self.subObjects.append(object(parent=self, *input))
+		return self.subObjects[-1]
 
 	def delete(self, string=""):
 		if string=="":
@@ -125,11 +126,11 @@ class World(Object):
 	def __init__(self):
 		super().__init__(
 			layer=0)
+		self.player=self.create(Player, [0, 0])
 
 	def run(self):
 		try:
-			player=self.find(type="Player")[0]
-			self.x, self.y=-player.x + displayWidth/2, -player.y + displayHeight/2
+			self.x, self.y=-self.player.x + displayWidth/2, -self.player.y + displayHeight/2
 		except:
 			pass
 
@@ -153,8 +154,8 @@ class Player(Object):
 		#self.pointAccel=3
 		self.states={}
 		self.pointPos = (0, 0)
-		self.create(Head)
-		self.create(Weapon1)
+		self.head = self.create(Head)
+		self.weapon1 = self.create(Weapon1)
 
 	def run(self):
 		if "a" in heldKeys:
@@ -186,20 +187,22 @@ class Puppet(Object):
 			relativePos=True)
 		self.states={}
 		self.pointPos=(-5, 0)
-		self.create(Head)
-		self.create(Weapon1)
+		self.head = self.create(Head)
+		self.weapon1 = self.create(Weapon1)
 
 class Weapon1(Object):
 	def __init__(self, parent):
 		super().__init__(
 			layer=6,
 			parent=parent)
-		self.create(Weapon1Arm, ["armleft"])
-		self.create(Weapon1Arm, ["armright"])
+		self.leftarm = self.create(Weapon1Arm, ["armleft"])
+		self.rightarm = self.create(Weapon1Arm, ["armright"])
 		self.weaponClk=0
+		self.fired=False
 
 	def fire(self):
 		self.weaponClk=not self.weaponClk
+		self.fired=True
 		self.subObjects[self.weaponClk].fire()
 
 class Weapon1Arm(Object):
@@ -262,24 +265,25 @@ class Muzzleflash(Object):
 			self.delete()
 
 world=World()
-world.create(Player, [0, 0])
 world.create(Puppet, [0, 0])
 
 def conn_success():
 	print("Connection success...")
-	player = world.find(type="Player")[0]
+	player = world.player
 	puppet = world.find(type="Puppet")[0]
-	recv = server.sendData(str({"name":"meatface"}))
+	recv = eval(server.sendData(str({"name":"meatface"})))
 	world.create(Player, recv['players']['Player1']['position'])
 	def sendData():
 		while running:
-			recv = eval(server.sendData(str({"name":"meatface", 'position':(player.x, player.y) , 'rotation':player.angle, "fired":player.find(type="Weapon1")[0].fired})))
-			player.find(type="Weapon1")[0].fired = False
+			recv = eval(server.sendData(str({"name":"meatface", 'position':(player.x, player.y) , 'rotation':player.angle, "fired":player.weapon1.fired})))
+			player.weapon1.fired = False
 			try:
 				puppet.x, puppet.y = recv['players']['Player2']['position']
 				puppet.angle = recv['players']['Player2']['rotation']
-				puppet.find(type="Weapon1")[0].find(type="Weapon1Arm")[0].angle = recv['players']['Player2']['rotation']
-				puppet.find(type="Weapon1")[0].find(type="Weapon1Arm")[1].angle = recv['players']['Player2']['rotation']
+				puppet.weapon1.rightarm.angle = recv['players']['Player2']['rotation']
+				puppet.weapon1.leftarm.angle = recv['players']['Player2']['rotation']
+				if recv['players']['Player2']['fired'] == True:
+					puppet.weapon1.fire()
 			except:
 				pass
 	threading.Thread(target=sendData).start()
@@ -303,19 +307,19 @@ while running:
 			del heldKeys[heldKeys.index(chr(event.key))]
 		if event.type==pygame.MOUSEBUTTONDOWN:
 			try:
-				world.find(type="Player")[0].find(type="Weapon1")[0].fire()
+				world.player.weapon1.fire()
 			except:
 				pass
 	if "" in heldKeys:
 		running=False
 	if "r" in heldKeys:
 		try:
-			world.find(type="Player")[0].find(type="Weapon1")[0].delete()
+			world.player.weapon1.delete()
 		except:
 			pass
 	if "e" in pressedKeys:
 		try:
-			world.find(type="Player")[0].create(Weapon1)
+			world.player.create(Weapon1)
 		except:
 			pass
 	gameDisplay.fill((255, 255, 255))
