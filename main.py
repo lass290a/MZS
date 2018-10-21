@@ -8,7 +8,7 @@ from time import sleep
 pygame.init()
 pygame.font.init()
 consolasFont=pygame.font.SysFont('Consolas', 14)
-displayWidth, displayHeight=1000, 600
+displayWidth, displayHeight=1800, 900
 gameDisplay=pygame.display.set_mode((displayWidth, displayHeight))
 pygame.display.set_caption('Open-world')
 clock=pygame.time.Clock()
@@ -31,7 +31,7 @@ def posToAng(x, y):
 	return 180+(-atan((y)/(x))*57.2957795+180*((x) < 0))
 
 class Object:
-	def __init__(self, sprite=None, spriteSize=1, layer=5, x=0, y=0, angle=0, parent=None, id=None, relativePos=False, relativeAngle=False):
+	def __init__(self, sprite="nosprite", spriteSize=1, layer=5, x=0, y=0, angle=0, parent=None, id=None, relativePos=False, relativeAngle=False):
 		self.x=x
 		self.y=y
 		self.angle=angle
@@ -42,10 +42,8 @@ class Object:
 		self.id=None
 		self.layer=layer
 		self.spriteSize=spriteSize
-		if sprite!=None:
+		if sprite != None:
 			self.sprite=pygame.transform.scale(sprites[sprite], (spriteSize, spriteSize))
-		else:
-			self.sprite=pygame.transform.scale(sprites["nosprite"], (1, 1))
 		layers[layer].append(self)
 		self.realX=0
 		self.realY=0
@@ -127,6 +125,7 @@ class World(Object):
 		super().__init__(
 			layer=0)
 		self.player=self.create(Player, [0, 0])
+		self.noteText=self.create(Text, [20, displayHeight-30, "", (0, 0, 0)])
 
 	def run(self):
 		try:
@@ -264,11 +263,26 @@ class Muzzleflash(Object):
 		if self.destructTimer==3:
 			self.delete()
 
+class Text(Object):
+	def __init__(self, x, y, text, color, parent):
+		super().__init__(
+			layer=14,
+			x=x,
+			y=y,
+			parent=parent)
+		self.text = text
+		self.sprite = consolasFont.render(text, False, color)
+	def setText(self, text, color):
+		self.sprite = consolasFont.render(text, False, color)
+
 world=World()
 world.create(Puppet, [0, 0])
 
 def conn_success():
 	print("Connection success...")
+	world.noteText.setText("Connected to "+serverAdress[0]+" on port "+serverAdress[1], (0, 0, 0))
+	global connecting
+	connecting = False
 	player = world.player
 	puppet = world.find(type="Puppet")[0]
 	recv = eval(server.sendData(str({"name":"meatface"})))
@@ -292,9 +306,22 @@ def conn_success():
 
 def conn_error(a):
 	print("Connection error:", a)
+	global connecting
+	world.noteText.setText("OFFLINE", (0, 0, 0))
+	connecting = False
 
+serverAdress = ("80.198.253.146", 4422)
+
+gameDisplay.fill((0, 0, 0))
+gameDisplay.blit(consolasFont.render("Connecting...", False, (255, 255, 255)), (displayWidth/2, displayHeight/2))
+pygame.display.update()
+clock.tick(60)
+connecting = True
 server = socketclient.NetworkClient(2, conn_success, conn_error)
-server.establishConnection("80.198.253.146", 4422)
+server.establishConnection(*serverAdress)
+
+while connecting:
+	sleep(0.05)
 
 while running:
 	mousePos=pygame.mouse.get_pos()
@@ -331,8 +358,8 @@ while running:
 				obj.run()
 			gameDisplay.blit(*obj.render())
 			#Debug
-			gameDisplay.blit(pygame.transform.scale(sprites["cross"], (12, 12)), (obj.realX-6, obj.realY-6))
-			gameDisplay.blit(consolasFont.render('"'+obj.type+(" #"+str(obj.id) if obj.id!=None else "")+'" '+("@"+obj.parent.type if obj.parent!=None else ""), False, (0, 0, 0)), (obj.realX+8, obj.realY+5))
+			#gameDisplay.blit(pygame.transform.scale(sprites["cross"], (12, 12)), (obj.realX-6, obj.realY-6))
+			#gameDisplay.blit(consolasFont.render('"'+obj.type+(" #"+str(obj.id) if obj.id!=None else "")+'" '+("@"+obj.parent.type if obj.parent!=None else ""), False, (0, 0, 0)), (obj.realX+10, obj.realY+20))
 	pygame.display.update()
 	clock.tick(60)
 sleep(0.5)
