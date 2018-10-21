@@ -3,20 +3,23 @@ from multiplayer import ThreadedServer
 server_data = {'players':{
 }}
 
-clients = {'192.168.0.10:43234':'Player1'}
+clients = {}
 
-test_json = {'192.168.0.10:43234':{'position':(3,4), 'rotation':180}}
+test_json = {}
 
 
 def event_handler(json_events):
-	ipaddress = list(json_events.keys())[0]
-	if ipaddress in clients:
-		player_ref = str(clients[list(json_events.keys())[0]])
-	else:
-		clients[str(list(json_events.keys())[0])] = f'Player{len(clients)+1}'
-		player_ref = str(clients[list(json_events.keys())[0]])
-		server_data['players'][player_ref] = {'name':'Steve', 'position':(0,0), 'rotation':90}
-		print('user created!')
+	print(clients)
+	print(json_events)
+	ipaddress = str(list(json_events.keys())[0])
+	if 'name' in list(json_events[ipaddress].keys()):
+		if f"{ipaddress}:{json_events[ipaddress]['name']}" in clients:
+			player_ref = str(clients[f"{ipaddress}:{json_events[ipaddress]['name']}"])
+		else:
+			clients[f"{ipaddress}:{json_events[ipaddress]['name']}"] = f'Player{len(clients)+1}'
+			player_ref = str(clients[f"{ipaddress}:{json_events[ipaddress]['name']}"])
+			server_data['players'][player_ref] = {'name':json_events[ipaddress]['name'], 'position':(0,0), 'rotation':90}
+			print('User Created!')
 	for event in json_events[ipaddress]:
 		server_data['players'][player_ref][event] = json_events[ipaddress][event]
 	return str(server_data)

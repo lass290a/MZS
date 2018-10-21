@@ -39,6 +39,6 @@ if __name__ == "__main__":
 	server.establishConnection("localhost", 4422)
 	while 1:
 
-		resp = server.sendData(str({'position':(randint(0,10),randint(0,10)), 'rotation':(randint(0,10))}))
+		resp = server.sendData(str({'position':(randint(0,10),randint(0,10)), 'rotation':randint(0,10)}))
 		print(resp)
 		sleep(2)
