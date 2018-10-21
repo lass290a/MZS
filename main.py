@@ -5,10 +5,14 @@ import socketclient
 import threading
 from time import sleep
 
+#80.198.253.146
+serverAdress = ("localhost", 4422)
+displayWidth, displayHeight = 1400, 700
+versionText = "Zython pre-beta"
+
 pygame.init()
 pygame.font.init()
 consolasFont=pygame.font.SysFont('Consolas', 14)
-displayWidth, displayHeight=1800, 900
 gameDisplay=pygame.display.set_mode((displayWidth, displayHeight))
 pygame.display.set_caption('Open-world')
 clock=pygame.time.Clock()
@@ -125,7 +129,8 @@ class World(Object):
 		super().__init__(
 			layer=0)
 		self.player=self.create(Player, [0, 0])
-		self.noteText=self.create(Text, [20, displayHeight-30, "", (0, 0, 0)])
+		self.noteText=self.create(Text, [5, displayHeight-14, "", (0, 0, 0)])
+		self.versionText=self.create(Text, [5, 5, versionText, (0, 0, 0)])
 
 	def run(self):
 		try:
@@ -193,7 +198,8 @@ class Weapon1(Object):
 	def __init__(self, parent):
 		super().__init__(
 			layer=6,
-			parent=parent)
+			parent=parent,
+			y=-60)
 		self.leftarm = self.create(Weapon1Arm, ["armleft"])
 		self.rightarm = self.create(Weapon1Arm, ["armright"])
 		self.weaponClk=0
@@ -280,7 +286,7 @@ world.create(Puppet, [0, 0])
 
 def conn_success():
 	print("Connection success...")
-	world.noteText.setText("Connected to "+serverAdress[0]+" on port "+serverAdress[1], (0, 0, 0))
+	world.noteText.setText("Connected to "+serverAdress[0]+" on port "+str(serverAdress[1]), (0, 0, 0))
 	global connecting
 	connecting = False
 	player = world.player
@@ -307,10 +313,8 @@ def conn_success():
 def conn_error(a):
 	print("Connection error:", a)
 	global connecting
-	world.noteText.setText("OFFLINE", (0, 0, 0))
+	world.noteText.setText("Failed to connect", (0, 0, 0))
 	connecting = False
-
-serverAdress = ("80.198.253.146", 4422)
 
 gameDisplay.fill((0, 0, 0))
 gameDisplay.blit(consolasFont.render("Connecting...", False, (255, 255, 255)), (displayWidth/2, displayHeight/2))
