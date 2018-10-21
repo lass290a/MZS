@@ -283,7 +283,10 @@ def conn_success():
 	world.player.x, world.player.y = recv['start_connection']['position']
 	def sendData():
 		while running:
+			print(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}}))
 			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}})))
+			print(recv)
+			print("----------")
 			oldPuppetList = [puppet.username for puppet in world.find("Puppet")]
 			newPuppetList = recv['player_data'].keys()
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
@@ -297,8 +300,9 @@ def conn_success():
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
 			for puppet in joinedList:
+				print(recv['player_data'])
 				print(recv['player_data'][puppet])
-				world.create(Puppet, recv['player_data'][puppet])
+				world.create(Puppet, recv['player_data'])
 				world.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
 				world.subObjects[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
 
