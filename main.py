@@ -5,9 +5,9 @@ import socketclient
 import threading
 from time import sleep
 
-serverAdress = ('localhost', 4422)
+#serverAdress = ('localhost', 4422)
 serverAdress = ('80.198.253.146', 4422)
-user = ('meatface', '123ultraomegalul')
+user = ('meatface', '1234')
 versionText = 'Zython pre-beta'
 displayWidth, displayHeight = 1400, 700
 
@@ -272,41 +272,46 @@ class Text(Object):
 		self.sprite = consolasFont.render(text, False, color)
 
 world=World()
-world.create(Puppet, {'username':'', 'position':(0, 0), 'angle': 45})
 
 def conn_success():
 	print('Connection success...')
 	world.noteText.setText('Connected to '+serverAdress[0]+' on port '+str(serverAdress[1]), (0, 0, 0))
+	global connecting
 	connecting = False
 	player = world.player
 	recv = eval(server.sendData(str({'start_connection':{'username':user[0], 'password':user[1]}})))
+	print(recv)
 	world.player.x, world.player.y = recv['start_connection']['position']
+	print("yeet")
 	def sendData():
 		while running:
+			print(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}}))
 			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}})))
+			print(recv)
 			oldPuppetList = [puppet.username for puppet in world.find("Puppet")]
-			newPuppetList = recv['player_data']['players'].keys()
+			newPuppetList = recv['player_data'].keys()
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
 			joinedList = list(set(newPuppetList)-set(oldPuppetList))
+			print('yeet')
 			for puppet in world.find('Puppet'):
 				if puppet in disconnectedList:
 					puppet.delete()
 			for puppet in world.find('Puppet'):
-				puppet.x, puppet.y = recv['players'][puppet.username]['position']
-				puppet.angle = recv['players'][puppet.username]['angle']
-				puppet.weapon1.rightarm.angle = recv['players'][puppet.username]['angle']
-				puppet.weapon1.leftarm.angle = recv['players'][puppet.username]['angle']
-			for puppet in joinList:
-				world.create(Puppet, recv['player_data']['players'][puppet])
-				world.subObjects[-1].weapon1.rightarm.angle = recv['players'][puppet]['angle']
-				world.subObjects[-1].weapon1.leftarm.angle = recv['players'][puppet]['angle']
+				puppet.x, puppet.y = recv['player_data'][puppet.username]['position']
+				puppet.angle = recv['player_data'][puppet.username]['angle']
+				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
+				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
+			for puppet in joinedList:
+				world.create(Puppet, recv['player_data']['player_data'][puppet])
+				world.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
+				world.subObjects[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
 
 	threading.Thread(target=sendData).start()
 
 def conn_error(a):
 	print('Connection error:', a)
-
 	world.noteText.setText('Failed to connect', (0, 0, 0))
+	global connecting
 	connecting = False
 
 gameDisplay.fill((0, 0, 0))
