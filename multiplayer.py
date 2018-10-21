@@ -23,6 +23,7 @@ class ThreadedServer(object):
 		while True:
 			try:
 				rawdata = client.recv(size).decode()
+				print(rawdata)
 				if rawdata.startswith('{') and rawdata.endswith('}') and ';' not in rawdata:
 					data = eval(rawdata)
 				if data:
