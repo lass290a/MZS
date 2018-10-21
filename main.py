@@ -1,6 +1,9 @@
 import pygame, glob, os
 from math import sqrt, cos, sin, radians, degrees, atan
 from random import uniform, getrandbits
+import socketclient
+import threading
+from time import sleep
 
 pygame.init()
 pygame.font.init()
@@ -262,6 +265,26 @@ world=World()
 world.create(Player, [0, 0])
 world.create(Puppet, [0, 0])
 
+def conn_success():
+	print("Connection success...")
+	#server.sendData(str({"name":"meatface"}))
+	player = world.find(type="Player")[0]
+	puppet = world.find(type="Puppet")[0]
+	def sendData():
+		while running:
+			recv = eval(server.sendData(str({"name":"meatface", 'position':(player.x, player.y) , 'rotation':player.angle})))
+			puppet.x, puppet.y = recv['players']['Player1']['position']
+			puppet.angle = recv['players']['Player1']['rotation']
+			puppet.find(type="Weapon1")[0].find(type="Weapon1Arm")[0].angle = recv['players']['Player1']['rotation']
+			puppet.find(type="Weapon1")[0].find(type="Weapon1Arm")[1].angle = recv['players']['Player1']['rotation']
+	threading.Thread(target=sendData).start()
+
+def conn_error(a):
+	print("Connection error:", a)
+
+server = socketclient.NetworkClient(2, conn_success, conn_error)
+server.establishConnection("80.198.253.146", 4422)
+
 while running:
 	mousePos=pygame.mouse.get_pos()
 	pressedKeys=[]
@@ -301,4 +324,5 @@ while running:
 			#gameDisplay.blit(consolasFont.render('"'+obj.type+(" #"+str(obj.id) if obj.id!=None else "")+'" '+("@"+obj.parent.type if obj.parent!=None else ""), False, (0, 0, 0)), (obj.realX+8, obj.realY+5))
 	pygame.display.update()
 	clock.tick(60)
+sleep(0.5)
 pygame.quit()
