@@ -4,8 +4,6 @@ server_data = {'player_data':{
 
 }}
 
-{'192.168.0.1:8888':{'start_connection':{'username':'meatface','password':'1234'}}}
-
 address_id = {}
 
 
@@ -43,8 +41,7 @@ def event_handler(raw_json):
 	send_data = {'player_data':{}}
 	for user in server_data['player_data']:
 		if str(user) != str(player_ref):
-			send_data['player_data'][user] = server_data['player_data'][user]
-			print(send_data)
+			send_data['player_data'][str(user)] = server_data['player_data'][str(user)]
 	return str(send_data)
 
 
