@@ -13,7 +13,7 @@ def server_started():
 	print('Server is running!')
 
 def event_handler(raw_json):
-	print(raw_json)
+	#print(raw_json)
 	address = str(list(raw_json.keys())[0])
 	event_data = raw_json[address]
 
@@ -29,7 +29,7 @@ def event_handler(raw_json):
 		else:
 			address_id[address] = (event_data['start_connection']['username'],event_data['start_connection']['password'])
 			player_ref = event_data['start_connection']['username']
-			server_data['player_data'][player_ref] = {'position':(0,0)}
+			server_data['player_data'][player_ref] = {'position':(0,0),'angle':90}
 			print('User Created!')
 			return str({'start_connection':server_data['player_data'][player_ref]})
 	else:
@@ -42,8 +42,9 @@ def event_handler(raw_json):
 
 	send_data = {'player_data':{}}
 	for user in server_data['player_data']:
-		if user != player_ref:
-			send_data['player_data'] = server_data['player_data'][user]
+		if str(user) != str(player_ref):
+			send_data['player_data'][user] = server_data['player_data'][user]
+			print(send_data)
 	return str(send_data)
 
 

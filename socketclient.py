@@ -21,7 +21,7 @@ class NetworkClient:
 		try:
 			self.sock.send(str(strdata).encode())
 			response = self.sock.recv(1024).decode()
-			return response
+			return str(response)
 		except socket.timeout as errormsg:
 			self.failed_callback(errormsg)
 
