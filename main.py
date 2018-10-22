@@ -297,7 +297,8 @@ def conn_success():
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
 			for puppet in joinedList:
-				world.create(Puppet, recv['player_data'][puppet])
+				print(recv['player_data'][puppet])
+				world.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
 				world.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
 				world.subObjects[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
 
