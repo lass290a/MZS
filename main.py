@@ -6,7 +6,7 @@ import threading
 from time import sleep
 
 #serverAdress = ('localhost', 4422)
-serverAdress = ('80.198.253.146', 4422)
+serverAdress = ('10.146.76.127', 4422)
 user = ('meatface', '1234')
 versionText = 'Zython pre-beta'
 displayWidth, displayHeight = 1400, 700
@@ -274,7 +274,6 @@ class Text(Object):
 world=World()
 
 def conn_success():
-	print('Connection success...')
 	world.noteText.setText('Connected to '+serverAdress[0]+' on port '+str(serverAdress[1]), (0, 0, 0))
 	global connecting
 	connecting = False
@@ -283,10 +282,8 @@ def conn_success():
 	world.player.x, world.player.y = recv['start_connection']['position']
 	def sendData():
 		while running:
-			print(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}}))
 			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}})))
-			print(recv)
-			print("----------")
+			print("recv:", recv)
 			oldPuppetList = [puppet.username for puppet in world.find("Puppet")]
 			newPuppetList = recv['player_data'].keys()
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
@@ -300,16 +297,14 @@ def conn_success():
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
 			for puppet in joinedList:
-				print(recv['player_data'])
-				print(recv['player_data'][puppet])
-				world.create(Puppet, recv['player_data'])
+				world.create(Puppet, recv['player_data'][puppet])
 				world.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
 				world.subObjects[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
 
 	threading.Thread(target=sendData).start()
 
 def conn_error(a):
-	print('Connection error:', a)
+	print('Failed!', a)
 	world.noteText.setText('Failed to connect', (0, 0, 0))
 	global connecting
 	connecting = False
