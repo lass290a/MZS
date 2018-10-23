@@ -112,12 +112,18 @@ class Object:
 		self.realPos=[self.realX, self.realY]
 		return rot_center(self.sprite, self.realAngle), (self.realX-self.spriteSize/2, self.realY-self.spriteSize/2)		
 
+class Overlay(Object):
+	def __init__(self, parent):
+		super().__init__(
+			parent=parent)
+
 class World(Object):
-	def __init__(self):
+	def __init__(self, parent):
 		super().__init__(
 			layer=0,
 			sprite='cross',
-			spriteSize=10)
+			spriteSize=10,
+			parent=parent)
 		self.player=self.create(Player, {'x':0, 'y':0})
 		self.noteText=self.create(Text, {'x':5, 'y':displayHeight-14, 'text':'', 'color':(0, 0, 0)})
 		self.versionText=self.create(Text, {'x':5, 'y':5, 'text':versionText, 'color':(0, 0, 0)})
@@ -127,6 +133,19 @@ class World(Object):
 			self.x, self.y=-self.player.x + displayWidth/2, -self.player.y + displayHeight/2
 		except:
 			pass
+
+class Game(Object):
+	def __init__(self):
+		super().__init__()
+		self.world = self.create(World)
+		self.overlay = self.create(Overlay)
+
+	def run(self):
+		try:
+			self.x, self.y=-self.player.x + displayWidth/2, -self.player.y + displayHeight/2
+		except:
+			pass
+
 
 class Player(Object):
 	def __init__(self, x, y, parent):
@@ -272,41 +291,41 @@ class Text(Object):
 	def setText(self, text, color):
 		self.sprite = consolasFont.render(text, False, color)
 
-world=World()
+game=Game()
 
 def conn_success():
-	world.noteText.setText('Connected to '+serverAdress[0]+' on port '+str(serverAdress[1]), (0, 0, 0))
+	game.world.noteText.setText('Connected to '+serverAdress[0]+' on port '+str(serverAdress[1]), (0, 0, 0))
 	global connecting
 	connecting = False
-	player = world.player
+	player = game.world.player
 	recv = eval(server.sendData(str({'start_connection':{'username':user[0], 'password':user[1]}})))
-	world.player.x, world.player.y = recv['start_connection']['position']
+	game.world.player.x, game.world.player.y = recv['start_connection']['position']
 	def sendData():
 		while running:
 			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}})))
-			oldPuppetList = sorted([puppet.username for puppet in world.find("Puppet")])
+			oldPuppetList = sorted([puppet.username for puppet in game.world.find("Puppet")])
 			newPuppetList = sorted(recv['player_data'].keys())
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
 			joinedList = list(set(newPuppetList)-set(oldPuppetList))
 			print(recv['player_data'], joinedList, disconnectedList)
-			for puppet in world.find('Puppet'):
+			for puppet in game.world.find('Puppet'):
 				if puppet in disconnectedList:
 					puppet.delete()
-			for puppet in world.find('Puppet'):
+			for puppet in game.world.find('Puppet'):
 				puppet.x, puppet.y = recv['player_data'][puppet.username]['position']
 				puppet.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
 			for puppet in joinedList:
-				world.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
-				world.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
-				world.subObjects[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
+				game.world.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
+				game.world.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
+				game.world.subObjects[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
 
 	threading.Thread(target=sendData).start()
 
 def conn_error(a):
 	print('Failed!', a)
-	world.noteText.setText('Failed to connect', (0, 0, 0))
+	game.world.noteText.setText('Failed to connect', (0, 0, 0))
 	global connecting
 	connecting = False
 
@@ -334,7 +353,7 @@ while running:
 			del heldKeys[heldKeys.index(chr(event.key))]
 		if event.type==pygame.MOUSEBUTTONDOWN:
 			try:
-				world.player.weapon1.fire()
+				game.world.player.weapon1.fire()
 			except:
 				pass
 	if '' in heldKeys:
@@ -349,7 +368,7 @@ while running:
 			object.run()
 		for obj in object.subObjects:
 			render(obj)
-	render(world)
+	render(game)
 	pygame.display.update()
 	clock.tick(60)
 sleep(0.5)
