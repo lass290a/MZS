@@ -5,8 +5,8 @@ import socketclient
 import threading
 from time import sleep
 
-#serverAdress = ('localhost', 4422)
-serverAdress = ('10.146.76.127', 4422)
+serverAdress = ('localhost', 4422)
+#serverAdress = ('10.146.76.127', 4422)
 user = ('meatface', '1234')
 versionText = 'Zython pre-beta'
 displayWidth, displayHeight = 1100, 600
@@ -48,7 +48,7 @@ class Object:
 		self.spriteSize=spriteSize
 		if sprite != None:
 			self.sprite=pygame.transform.scale(sprites[sprite], (spriteSize, spriteSize))
-		self.sprite = self.sprite.convert_alpha()
+			self.sprite = self.sprite.convert_alpha()
 		layers[layer].append(self)
 		self.realX=0
 		self.realY=0
@@ -121,8 +121,8 @@ class World(Object):
 	def __init__(self, parent):
 		super().__init__(
 			layer=0,
-			sprite='cross',
-			spriteSize=10,
+			sprite='TestWorld01',
+			spriteSize=4096,
 			parent=parent)
 		self.player=self.create(Player, {'x':0, 'y':0})
 		self.noteText=self.create(Text, {'x':5, 'y':displayHeight-14, 'text':'', 'color':(0, 0, 0)})
@@ -307,7 +307,7 @@ def conn_success():
 			newPuppetList = sorted(recv['player_data'].keys())
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
 			joinedList = list(set(newPuppetList)-set(oldPuppetList))
-			print(recv['player_data'], joinedList, disconnectedList)
+			#print(recv['player_data'], joinedList, disconnectedList)
 			for puppet in game.world.find('Puppet'):
 				if puppet in disconnectedList:
 					puppet.delete()
