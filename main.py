@@ -48,6 +48,7 @@ class Object:
 		self.spriteSize=spriteSize
 		if sprite != None:
 			self.sprite=pygame.transform.scale(sprites[sprite], (spriteSize, spriteSize))
+		self.sprite = self.sprite.convert_alpha()
 		layers[layer].append(self)
 		self.realX=0
 		self.realY=0
