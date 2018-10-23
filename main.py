@@ -9,13 +9,13 @@ from time import sleep
 serverAdress = ('10.146.76.127', 4422)
 user = ('meatface', '1234')
 versionText = 'Zython pre-beta'
-displayWidth, displayHeight = 1400, 700
+displayWidth, displayHeight = 1100, 600
 
 pygame.init()
 pygame.font.init()
 consolasFont=pygame.font.SysFont('Consolas', 14)
 gameDisplay=pygame.display.set_mode((displayWidth, displayHeight))
-pygame.display.set_caption('Open-world')
+pygame.display.set_caption(versionText)
 clock=pygame.time.Clock()
 running=True
 heldKeys=[]
@@ -147,8 +147,8 @@ class Player(Object):
 		#self.pointAccel=3
 		self.states={}
 		self.pointPos = (0, 0)
-		self.head = self.create(Head)
 		self.weapon1 = self.create(Weapon1)
+		self.head = self.create(Head)
 
 	def run(self):
 		if 'a' in heldKeys:
@@ -283,11 +283,11 @@ def conn_success():
 	def sendData():
 		while running:
 			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}})))
-			print("recv:", recv)
-			oldPuppetList = [puppet.username for puppet in world.find("Puppet")]
-			newPuppetList = recv['player_data'].keys()
+			oldPuppetList = sorted([puppet.username for puppet in world.find("Puppet")])
+			newPuppetList = sorted(recv['player_data'].keys())
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
 			joinedList = list(set(newPuppetList)-set(oldPuppetList))
+			print(recv['player_data'], joinedList, disconnectedList)
 			for puppet in world.find('Puppet'):
 				if puppet in disconnectedList:
 					puppet.delete()
@@ -297,7 +297,6 @@ def conn_success():
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
 			for puppet in joinedList:
-				print(recv['player_data'][puppet])
 				world.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
 				world.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
 				world.subObjects[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
@@ -315,7 +314,7 @@ gameDisplay.blit(consolasFont.render('Connecting...', False, (255, 255, 255)), (
 pygame.display.update()
 clock.tick(60)
 connecting = True
-server = socketclient.NetworkClient(2, conn_success, conn_error)
+server = socketclient.NetworkClient(3, conn_success, conn_error)
 server.establishConnection(*serverAdress)
 
 while connecting:
@@ -339,25 +338,17 @@ while running:
 				pass
 	if '' in heldKeys:
 		running=False
-	if 'r' in heldKeys:
-		try:
-			world.player.weapon1.delete()
-		except:
-			pass
-	if 'e' in pressedKeys:
-		try:
-			world.player.create(Weapon1)
-		except:
-			pass
 	gameDisplay.fill((255, 255, 255))
-	for layer in layers:
-		for obj in layer:
-			if 'run' in dir(obj):
-				obj.run()
-			gameDisplay.blit(*obj.render())
-			#Debug
-			#gameDisplay.blit(pygame.transform.scale(sprites['cross'], (12, 12)), (obj.realX-6, obj.realY-6))
-			#gameDisplay.blit(consolasFont.render('''+obj.type+' '+('@'+obj.parent.type if obj.parent!=None else ''), False, (0, 0, 0)), (obj.realX+10, obj.realY+20))
+	def render(object):
+		gameDisplay.blit(*object.render())
+		#Debug
+		#gameDisplay.blit(pygame.transform.scale(sprites['cross'], (12, 12)), (object.realX-6, object.realY-6))
+		#gameDisplay.blit(consolasFont.render('''+object.type+' '+('@'+object.parent.type if object.parent!=None else ''), False, (0, 0, 0)), (object.realX+10, obj.realY+20))
+		if 'run' in dir(object):
+			object.run()
+		for obj in object.subObjects:
+			render(obj)
+	render(world)
 	pygame.display.update()
 	clock.tick(60)
 sleep(0.5)
