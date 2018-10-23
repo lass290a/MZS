@@ -1,8 +1,6 @@
 from multiplayer import ThreadedServer
 
-server_data = {'player_data':{
-
-}}
+server_data = {'player_data':{}}
 
 address_id = {}
 
@@ -14,6 +12,15 @@ def event_handler(raw_json):
 	#print(raw_json)
 	address = str(list(raw_json.keys())[0])
 	event_data = raw_json[address]
+
+
+	if 'connection' in list(event_data.keys()):
+		if event_data['connection'] == 'disconnect':
+			try:
+				del address_id[address]
+			except:
+				pass
+			return False
 
 	if 'start_connection' in list(event_data.keys()):
 		if event_data['start_connection']['username'] in [username[0] for username in list(address_id.values())]:
@@ -40,8 +47,8 @@ def event_handler(raw_json):
 
 	send_data = {'player_data':{}}
 	for user in server_data['player_data']:
-		if str(user) != str(player_ref):
-			send_data['player_data'][str(user)] = server_data['player_data'][str(user)]
+		if user != player_ref and user in [username[0] for username in list(address_id.values())]:
+			send_data['player_data'][user] = server_data['player_data'][user]
 	return str(send_data)
 
 

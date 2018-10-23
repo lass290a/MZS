@@ -34,6 +34,7 @@ class ThreadedServer(object):
 				else:
 					raise error('Client disconnected')
 			except:
+				self.events({f'{address[0]}:{address[1]}':{'connection':'disconnect'}})
 				client.close()
 				return False
 
