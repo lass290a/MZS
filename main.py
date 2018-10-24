@@ -42,8 +42,12 @@ class ChunkRender:
 		self.map = map_data
 
 	def getChunks(self, player_pos):
-		chunk_coord = tuple([int(coord/256) for coord in player_pos])
-		return str(tuple([co*256 for co in chunk_coord])).replace(' ','') + ':' + self.map[str(chunk_coord).replace(' ','')]
+		chunk_coord = tuple([round(coord/256) for coord in player_pos])
+		try:
+			new_chunk = str(tuple([co*256 for co in chunk_coord])).replace(' ','') + ':' + self.map[str(chunk_coord).replace(' ','')]
+			return new_chunk
+		except KeyError:
+			return '(0,0):Grass_01'
 
 #####################
 
@@ -418,7 +422,7 @@ server.establishConnection(*serverAdress)
 #	sleep(0.05)
 
 loaded_chunks = []
-test_map = {'(0,0)':'Grass_01','(1,0)':'Grass_01','(-1,0)':'Grass_01','(0,1)':'Grass_01','(0,-1)':'Grass_01'}
+test_map = {'(0,0)':'Asphalt_01','(1,0)':'Grass_01','(-1,0)':'Grass_01','(0,1)':'Grass_01','(0,-1)':'Grass_01','(-1,-1)':'Grass_01','(1,-1)':'Grass_01','(-1,1)':'Grass_01','(1,1)':'Grass_01'}
 cr = ChunkRender(test_map)
 
 def update_chunk():
@@ -427,7 +431,7 @@ def update_chunk():
 	if cd.split(':')[0] not in loaded_chunks:
 		loaded_chunks.append(cd.split(':')[0])
 		game.world.create(Chunk, {'x':eval(cd.split(':')[0])[0],'y':eval(cd.split(':')[0])[1], 'tex':str(cd.split(':')[1])})
-	print(loaded_chunks)
+	#print(loaded_chunks)
 
 while running:
 	mousePos=pygame.mouse.get_pos()
