@@ -1,5 +1,23 @@
 from multiplayer import ThreadedServer
 
+class Database:
+	def __init__(self, username=None, parent=None):
+		self.username = username
+		self.parent = parent
+		self.players = []
+		self.player_data = {}
+
+	def addPlayer(self, object, input={}):
+		self.subObjects.append(object(parent=self, **input))
+		return self.players[-1]
+
+	def deletePlayer(self, object=None):
+		if object == None:
+			for obj in players
+
+
+
+
 server_data = {'player_data':{}}
 
 address_id = {}
