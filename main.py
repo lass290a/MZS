@@ -47,7 +47,6 @@ class Object:
 		if sprite != None:
 			self.sprite=pygame.transform.scale(sprites[sprite], (spriteSize, spriteSize))
 			self.sprite = self.sprite.convert_alpha()
-		layers[layer].append(self)
 		self.realX=0
 		self.realY=0
 		self.realAngle=0
@@ -186,7 +185,6 @@ class Overlay(Object):
 class World(Object):
 	def __init__(self, parent):
 		super().__init__(
-			layer=0,
 			sprite='TestWorld01',
 			spriteSize=4096,
 			parent=parent)
