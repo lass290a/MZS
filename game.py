@@ -1,60 +1,7 @@
-import pygame, glob, os
-from math import sqrt, cos, sin, radians, degrees, atan
-from random import uniform, getrandbits
-import socketclient
-import threading
-from time import sleep
 
-serverAdress = ('localhost', 4422)
-#serverAdress = ('10.146.76.127', 4422)
-user = ('meatface', '1234')
-versionText = 'Zython pre-beta'
-displayWidth, displayHeight = 1920, 1080
-
-pygame.init()
-pygame.font.init()
-consolasFont=pygame.font.SysFont('Consolas', 14)
-gameDisplay=pygame.display.set_mode((displayWidth, displayHeight))
-pygame.display.set_caption(versionText)
-clock=pygame.time.Clock()
-running=True
-heldKeys=[]
-pressedKeys=[]
-sprites={os.path.basename(os.path.splitext(filetype)[0]):pygame.image.load(filetype)
-	for filetype in glob.iglob(os.path.dirname(os.path.abspath(__file__))+'/**/*.png', recursive=True)}
-
-def rot_center(image, angle):
-	orig_rect=image.get_rect()
-	rotImage=pygame.transform.rotate(image, angle)
-	rotRect=orig_rect.copy()
-	rotRect.center=rotImage.get_rect().center
-	rotImage=rotImage.subsurface(rotRect).copy()
-	return rotImage
-
-def posToAng(x, y):
-	return 180+(-atan((y)/(x))*57.2957795+180*((x) < 0))
-
-#####################
-# CHUNK RENDER TEST #
-
-class ChunkRender:
-	def __init__(self, map_data):
-		self.map = map_data
-
-	def getChunks(self, player_pos):
-		chunk_coord = tuple([round(coord/512) for coord in player_pos])
-		try:
-			new_chunk = str(tuple([co*512 for co in chunk_coord])).replace(' ','') + ':' + self.map[str(chunk_coord).replace(' ','')]
-			return new_chunk
-		except KeyError:
-			return False
-
-
-
-#####################
 
 class Object:
-	def __init__(self, sprite='nosprite', spriteSize=1, x=0, y=0, angle=0, parent=None, relativePos=False, relativeAngle=False):
+	def __init__(self, sprite='nosprite', x=0, y=0, angle=0, parent=None, relativePos=False, relativeAngle=False):
 		self.x=x
 		self.y=y
 		self.angle=angle
@@ -62,10 +9,6 @@ class Object:
 		self.relativePos=relativePos
 		self.relativeAngle=relativeAngle
 		self.type=self.__class__.__name__
-		self.spriteSize=spriteSize
-		if sprite != None:
-			self.sprite=pygame.transform.scale(sprites[sprite], (spriteSize, spriteSize))
-			self.sprite = self.sprite.convert_alpha()
 		self.realX=0
 		self.realY=0
 		self.realAngle=0
@@ -418,66 +361,3 @@ def conn_error(a):
 	#game.world.noteText.setText('Failed to connect', (0, 0, 0))
 	global connecting
 	connecting = False
-
-#gameDisplay.fill((0, 0, 0))
-#gameDisplay.blit(consolasFont.render('Connecting...', False, (255, 255, 255)), (displayWidth/2, displayHeight/2))
-#pygame.display.update()
-#clock.tick(60)
-
-connecting = True
-server = socketclient.NetworkClient(1, conn_success, conn_error)
-server.establishConnection(*serverAdress)
-
-#while connecting:
-#	sleep(0.05)
-
-loaded_chunks = []
-test_map = {'(0,0)':'Asphalt_01','(1,0)':'Grass_01','(-1,0)':'Grass_01','(0,1)':'Grass_01','(0,-1)':'Grass_01','(-1,-1)':'Grass_01','(1,-1)':'Grass_01','(-1,1)':'Grass_01','(1,1)':'Grass_01'}
-cr = ChunkRender(test_map)
-
-def update_chunk():
-	player_loc = (game.world.players.player.x, game.world.players.player.y)
-	cd = cr.getChunks(player_loc)
-	if cd:
-		if cd.split(':')[0] not in loaded_chunks:
-			loaded_chunks.append(cd.split(':')[0])
-
-			game.world.mapobjects.create(Chunk, {'x':eval(cd.split(':')[0])[0],'y':eval(cd.split(':')[0])[1], 'tex':str(cd.split(':')[1])})
-	print(loaded_chunks)
-
-while running:
-	mousePos=pygame.mouse.get_pos()
-	pressedKeys=[]
-	for event in pygame.event.get():
-		if event.type==pygame.QUIT:
-			running=False
-		if event.type==pygame.KEYDOWN:
-			pressedKeys.append(chr(event.key))
-			heldKeys.append(chr(event.key))
-		if event.type==pygame.KEYUP:
-			del heldKeys[heldKeys.index(chr(event.key))]
-		if event.type==pygame.MOUSEBUTTONDOWN:
-			try:
-				game.world.players.player.weapon1.fire()
-			except:
-				pass
-	if '' in heldKeys:
-		running=False
-	update_chunk()
-	gameDisplay.fill((255, 255, 255))
-	def render(object):
-		gameDisplay.blit(*object.render())
-		if object.type == "Window":
-			pygame.draw.rect(gameDisplay, (50, 50, 50, 125), [*[object.pos[i]-object.spriteSize[i]/2 for i in range(2)], *object.spriteSize], 2)
-		#Debug
-		gameDisplay.blit(pygame.transform.scale(sprites['cross'], (12, 12)), (object.realX-6, object.realY-6))
-		#gameDisplay.blit(consolasFont.render(' '+object.type+' '+('@'+object.parent.type if object.parent!=None else ''), False, (0, 0, 0)), (object.realX+10, obj.realY+20))
-		if 'run' in dir(object):
-			object.run()
-		for obj in object.subObjects:
-			render(obj)
-	render(game)
-	pygame.display.update()
-	clock.tick(60)
-sleep(0.5)
-pygame.quit()

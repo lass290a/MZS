@@ -13,7 +13,8 @@ class Database:
 
 	def deletePlayer(self, object=None):
 		if object == None:
-			for obj in players
+			for obj in players:
+				pass
 
 
 

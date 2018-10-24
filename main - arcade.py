@@ -1,3 +1,6 @@
+import arcade
+
+
 import pygame, glob, os
 from math import sqrt, cos, sin, radians, degrees, atan
 from random import uniform, getrandbits
