@@ -34,6 +34,19 @@ def rot_center(image, angle):
 def posToAng(x, y):
 	return 180+(-atan((y)/(x))*57.2957795+180*((x) < 0))
 
+#####################
+# CHUNK RENDER TEST #
+
+class ChunkRender:
+	def __init__(self, map_data):
+		self.map = map_data
+
+	def getChunks(self, player_pos):
+		chunk_coord = tuple([int(coord/256) for coord in player_pos])
+		return str(tuple([co*256 for co in chunk_coord])).replace(' ','') + ':' + self.map[str(chunk_coord).replace(' ','')]
+
+#####################
+
 class Object:
 	def __init__(self, sprite='nosprite', spriteSize=1, x=0, y=0, angle=0, parent=None, relativePos=False, relativeAngle=False):
 		self.x=x
@@ -185,8 +198,8 @@ class Overlay(Object):
 class World(Object):
 	def __init__(self, parent):
 		super().__init__(
-			sprite='TestWorld01',
-			spriteSize=4096,
+			sprite='cross',
+			spriteSize=19,
 			parent=parent)
 		self.player=self.create(Player, {'x':0, 'y':0})
 		self.noteText=self.create(Text, {'x':5, 'y':displayHeight-14, 'text':'', 'color':(0, 0, 0)})
@@ -197,6 +210,16 @@ class World(Object):
 			self.x, self.y=-self.player.x + displayWidth/2, -self.player.y + displayHeight/2
 		except:
 			pass
+
+class Chunk(Object):
+	def __init__(self, x, y, tex, parent):
+		super().__init__(
+			sprite=tex,
+			spriteSize=256,
+			x=x,
+			y=y,
+			parent=parent,
+			relativePos=True)
 
 class Window(Widget):
 	def __init__(self, parent):
@@ -394,6 +417,18 @@ server.establishConnection(*serverAdress)
 #while connecting:
 #	sleep(0.05)
 
+loaded_chunks = []
+test_map = {'(0,0)':'Grass_01','(1,0)':'Grass_01','(-1,0)':'Grass_01','(0,1)':'Grass_01','(0,-1)':'Grass_01'}
+cr = ChunkRender(test_map)
+
+def update_chunk():
+	player_loc = (game.world.player.x, game.world.player.y)
+	cd = cr.getChunks(player_loc)
+	if cd.split(':')[0] not in loaded_chunks:
+		loaded_chunks.append(cd.split(':')[0])
+		game.world.create(Chunk, {'x':eval(cd.split(':')[0])[0],'y':eval(cd.split(':')[0])[1], 'tex':str(cd.split(':')[1])})
+	print(loaded_chunks)
+
 while running:
 	mousePos=pygame.mouse.get_pos()
 	pressedKeys=[]
@@ -412,7 +447,8 @@ while running:
 				pass
 	if '' in heldKeys:
 		running=False
-	gameDisplay.fill((0, 0, 0))
+	update_chunk()
+	gameDisplay.fill((255, 255, 255))
 	def render(object):
 		gameDisplay.blit(*object.render())
 		if object.type == "Window":
