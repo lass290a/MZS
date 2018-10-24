@@ -42,12 +42,14 @@ class ChunkRender:
 		self.map = map_data
 
 	def getChunks(self, player_pos):
-		chunk_coord = tuple([round(coord/256) for coord in player_pos])
+		chunk_coord = tuple([round(coord/512) for coord in player_pos])
 		try:
-			new_chunk = str(tuple([co*256 for co in chunk_coord])).replace(' ','') + ':' + self.map[str(chunk_coord).replace(' ','')]
+			new_chunk = str(tuple([co*512 for co in chunk_coord])).replace(' ','') + ':' + self.map[str(chunk_coord).replace(' ','')]
 			return new_chunk
 		except KeyError:
-			return '(0,0):Grass_01'
+			return False
+
+
 
 #####################
 
@@ -88,7 +90,6 @@ class Object:
 					self.parent.subObjects.pop(index)
 					if self.parent.subObjects!=[] and str(self.parent)!=string:
 						self.parent.subObjects[0].delete(string)
-							
 
 	def find(self, type):
 		objecttype=[]
@@ -219,7 +220,7 @@ class Chunk(Object):
 	def __init__(self, x, y, tex, parent):
 		super().__init__(
 			sprite=tex,
-			spriteSize=256,
+			spriteSize=512,
 			x=x,
 			y=y,
 			parent=parent,
@@ -428,10 +429,12 @@ cr = ChunkRender(test_map)
 def update_chunk():
 	player_loc = (game.world.player.x, game.world.player.y)
 	cd = cr.getChunks(player_loc)
-	if cd.split(':')[0] not in loaded_chunks:
-		loaded_chunks.append(cd.split(':')[0])
-		game.world.create(Chunk, {'x':eval(cd.split(':')[0])[0],'y':eval(cd.split(':')[0])[1], 'tex':str(cd.split(':')[1])})
-	#print(loaded_chunks)
+	if cd:
+		if cd.split(':')[0] not in loaded_chunks:
+			loaded_chunks.append(cd.split(':')[0])
+
+			game.world.create(Chunk, {'x':eval(cd.split(':')[0])[0],'y':eval(cd.split(':')[0])[1], 'tex':str(cd.split(':')[1])})
+	print(loaded_chunks)
 
 while running:
 	mousePos=pygame.mouse.get_pos()
@@ -458,8 +461,8 @@ while running:
 		if object.type == "Window":
 			pygame.draw.rect(gameDisplay, (50, 50, 50, 125), [*[object.pos[i]-object.spriteSize[i]/2 for i in range(2)], *object.spriteSize], 2)
 		#Debug
-		#gameDisplay.blit(pygame.transform.scale(sprites['cross'], (12, 12)), (object.realX-6, object.realY-6))
-		#gameDisplay.blit(consolasFont.render('''+object.type+' '+('@'+object.parent.type if object.parent!=None else ''), False, (0, 0, 0)), (object.realX+10, obj.realY+20))
+		gameDisplay.blit(pygame.transform.scale(sprites['cross'], (12, 12)), (object.realX-6, object.realY-6))
+		#gameDisplay.blit(consolasFont.render(' '+object.type+' '+('@'+object.parent.type if object.parent!=None else ''), False, (0, 0, 0)), (object.realX+10, obj.realY+20))
 		if 'run' in dir(object):
 			object.run()
 		for obj in object.subObjects:
