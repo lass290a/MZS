@@ -22,7 +22,6 @@ heldKeys=[]
 pressedKeys=[]
 sprites={os.path.basename(os.path.splitext(filetype)[0]):pygame.image.load(filetype)
 	for filetype in glob.iglob(os.path.dirname(os.path.abspath(__file__))+'/**/*.png', recursive=True)}
-layers=[[] for x in range(15)]
 
 def rot_center(image, angle):
 	orig_rect=image.get_rect()
@@ -36,7 +35,7 @@ def posToAng(x, y):
 	return 180+(-atan((y)/(x))*57.2957795+180*((x) < 0))
 
 class Object:
-	def __init__(self, sprite='nosprite', spriteSize=1, layer=5, x=0, y=0, angle=0, parent=None, relativePos=False, relativeAngle=False):
+	def __init__(self, sprite='nosprite', spriteSize=1, x=0, y=0, angle=0, parent=None, relativePos=False, relativeAngle=False):
 		self.x=x
 		self.y=y
 		self.angle=angle
@@ -44,7 +43,6 @@ class Object:
 		self.relativePos=relativePos
 		self.relativeAngle=relativeAngle
 		self.type=self.__class__.__name__
-		self.layer=layer
 		self.spriteSize=spriteSize
 		if sprite != None:
 			self.sprite=pygame.transform.scale(sprites[sprite], (spriteSize, spriteSize))
@@ -67,11 +65,6 @@ class Object:
 
 		for obj in self.subObjects:
 			obj.delete(string)
-		
-		for idx0, layer in enumerate(layers):
-			for idx1, obj in enumerate(layer):
-				if obj==self:
-					del layers[idx0][idx1]
 		
 		if self.parent!=None:
 			for index, obj in enumerate(self.parent.subObjects):
@@ -112,10 +105,83 @@ class Object:
 		self.realPos=[self.realX, self.realY]
 		return rot_center(self.sprite, self.realAngle), (self.realX-self.spriteSize/2, self.realY-self.spriteSize/2)		
 
+class Widget:
+	def __init__(self, sprite='nosprite', angle=0, spriteSize=(10, 10), x=0, y=0, parent=None, relativePos=False):
+		self.x=x
+		self.y=y
+		self.angle = angle
+		self.parent=parent
+		self.relativePos=relativePos
+		self.type=self.__class__.__name__
+		self.spriteSize=spriteSize
+		if sprite != None:
+			self.sprite=pygame.transform.scale(sprites[sprite], spriteSize)
+		self.sprite = self.sprite.convert_alpha()
+		self.realX=0
+		self.realY=0
+		self.subObjects=[]
+		self.pos=[]
+		self.realPos=[]
+
+	def create(self, object, input={}):
+		self.subObjects.append(object(parent=self, **input))
+		return self.subObjects[-1]
+
+	def delete(self, string=''):
+		if string=='':
+			string=str(self.parent)
+
+		for obj in self.subObjects:
+			obj.delete(string)
+		
+		if self.parent!=None:
+			for index, obj in enumerate(self.parent.subObjects):
+				if obj==self:
+					self.parent.subObjects.pop(index)
+					if self.parent.subObjects!=[] and str(self.parent)!=string:
+						self.parent.subObjects[0].delete(string)
+
+	def find(self, type):
+		objecttype=[]
+		for object in self.subObjects:
+			if object.type==type:
+				objecttype.append(object)
+		return objecttype
+
+	def render(self):
+		parent=None
+		if isinstance(self.relativePos, Widget):
+			parent=self.relativePos
+		else:
+			parent=self.parent
+		if (self.relativePos==True or isinstance(self.relativePos, Widget)) and self.parent!=None:
+			self.realX=parent.realX + cos(radians(-parent.realAngle))*self.x + cos(radians(-parent.realAngle+90))*self.y
+			self.realY=parent.realY + sin(radians(-parent.realAngle))*self.x + sin(radians(-parent.realAngle+90))*self.y
+		else:
+			self.realX=self.x
+			self.realY=self.y
+		self.realAngle=self.angle
+		self.pos=[self.x, self.y]
+		self.realPos=[self.realX, self.realY]
+		return rot_center(self.sprite, self.realAngle), (self.realX-self.spriteSize[0]/2, self.realY-self.spriteSize[1]/2)		
+
+class Game(Object):
+	def __init__(self):
+		super().__init__()
+		self.world = self.create(World)
+		self.overlay = self.create(Overlay)
+
+	def run(self):
+		try:
+			self.x, self.y=-self.player.x + displayWidth/2, -self.player.y + displayHeight/2
+		except:
+			pass
+
 class Overlay(Object):
 	def __init__(self, parent):
 		super().__init__(
 			parent=parent)
+		self.create(Window)
 
 class World(Object):
 	def __init__(self, parent):
@@ -134,25 +200,20 @@ class World(Object):
 		except:
 			pass
 
-class Game(Object):
-	def __init__(self):
-		super().__init__()
-		self.world = self.create(World)
-		self.overlay = self.create(Overlay)
-
-	def run(self):
-		try:
-			self.x, self.y=-self.player.x + displayWidth/2, -self.player.y + displayHeight/2
-		except:
-			pass
-
+class Window(Widget):
+	def __init__(self, parent):
+		super().__init__(
+			sprite='background',
+			spriteSize=(120,100),
+			x=500,
+			y=500,
+			parent=parent)
 
 class Player(Object):
 	def __init__(self, x, y, parent):
 		super().__init__(
 			sprite='body',
 			spriteSize=70,
-			layer=5,
 			x=x,
 			y=y,
 			parent=parent,
@@ -193,7 +254,6 @@ class Puppet(Object):
 		super().__init__(
 			sprite='body',
 			spriteSize=70,
-			layer=5,
 			x=position[0],
 			y=position[1],
 			angle=angle,
@@ -207,7 +267,6 @@ class Puppet(Object):
 class Weapon1(Object):
 	def __init__(self, parent):
 		super().__init__(
-			layer=6,
 			parent=parent,
 			y=-60)
 		self.leftarm = self.create(Weapon1Arm, {'side':'armleft'})
@@ -226,7 +285,6 @@ class Weapon1Arm(Object):
 		super().__init__(
 			sprite=side,
 			spriteSize=180,
-			layer=7,
 			parent=parent,
 			relativePos=parent.parent,
 			x=0,
@@ -254,7 +312,6 @@ class Head(Object):
 		super().__init__(
 			sprite='head',
 			spriteSize=80,
-			layer=8,
 			parent=parent,
 			relativePos=True)
 
@@ -268,7 +325,6 @@ class Muzzleflash(Object):
 			spriteSize=80,
 			parent=parent,
 			relativePos=True,
-			layer=8,
 			x=80,
 			y=-10*parent.side)
 		self.angle=self.parent.angle
@@ -282,7 +338,6 @@ class Muzzleflash(Object):
 class Text(Object):
 	def __init__(self, x, y, text, color, parent):
 		super().__init__(
-			layer=14,
 			x=x,
 			y=y,
 			parent=parent)
@@ -329,16 +384,17 @@ def conn_error(a):
 	global connecting
 	connecting = False
 
-gameDisplay.fill((0, 0, 0))
-gameDisplay.blit(consolasFont.render('Connecting...', False, (255, 255, 255)), (displayWidth/2, displayHeight/2))
-pygame.display.update()
-clock.tick(60)
+#gameDisplay.fill((0, 0, 0))
+#gameDisplay.blit(consolasFont.render('Connecting...', False, (255, 255, 255)), (displayWidth/2, displayHeight/2))
+#pygame.display.update()
+#clock.tick(60)
+
 connecting = True
-server = socketclient.NetworkClient(3, conn_success, conn_error)
+server = socketclient.NetworkClient(1, conn_success, conn_error)
 server.establishConnection(*serverAdress)
 
-while connecting:
-	sleep(0.05)
+#while connecting:
+#	sleep(0.05)
 
 while running:
 	mousePos=pygame.mouse.get_pos()
@@ -358,9 +414,11 @@ while running:
 				pass
 	if '' in heldKeys:
 		running=False
-	gameDisplay.fill((255, 255, 255))
+	gameDisplay.fill((0, 0, 0))
 	def render(object):
 		gameDisplay.blit(*object.render())
+		if object.type == "Window":
+			pygame.draw.rect(gameDisplay, (50, 50, 50, 125), [*[object.pos[i]-object.spriteSize[i]/2 for i in range(2)], *object.spriteSize], 2)
 		#Debug
 		#gameDisplay.blit(pygame.transform.scale(sprites['cross'], (12, 12)), (object.realX-6, object.realY-6))
 		#gameDisplay.blit(consolasFont.render('''+object.type+' '+('@'+object.parent.type if object.parent!=None else ''), False, (0, 0, 0)), (object.realX+10, obj.realY+20))
