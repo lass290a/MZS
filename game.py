@@ -1,5 +1,3 @@
-
-
 class Object:
 	def __init__(self, sprite='nosprite', x=0, y=0, angle=0, parent=None, relativePos=False, relativeAngle=False):
 		self.x=x
