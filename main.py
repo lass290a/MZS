@@ -5,8 +5,8 @@ import socketclient
 import threading
 from time import sleep
 
-serverAdress = ('localhost', 4422)
-#serverAdress = ('10.146.76.127', 4422)
+#serverAdress = ('localhost', 4422)
+serverAdress = ('10.146.76.127', 4422)
 user = ('meatface', '1234')
 versionText = 'Zython pre-beta'
 displayWidth, displayHeight = 1920, 1080
@@ -392,7 +392,8 @@ def conn_success():
 	player.x, player.y = recv['start_connection']['position']
 	def sendData():
 		while running:
-			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}})))
+			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle, 'fired': player.weapon1.fired}})))
+			player.weapon1.fired = True
 			oldPuppetList = sorted([puppet.username for puppet in game.world.players.find("Puppet")])
 			newPuppetList = sorted(recv['player_data'].keys())
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
@@ -406,6 +407,8 @@ def conn_success():
 				puppet.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
+				if recv['player_data'][puppet.username]['fired']:
+					puppet.weapon1.fire()
 			for puppet in joinedList:
 				game.world.players.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
 				game.world.players.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
