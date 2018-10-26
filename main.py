@@ -381,6 +381,7 @@ def conn_success():
 	def sendData():
 		while running:
 			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle, 'fired': player.weapon1.fired}})))
+			if player.weapon1.fired: player.weapon1.fired = False
 			oldPuppetList = sorted([puppet.username for puppet in game.world.players.find("Puppet")])
 			newPuppetList = sorted(recv['player_data'].keys())
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
