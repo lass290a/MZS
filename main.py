@@ -1,15 +1,15 @@
 import pygame, glob, os
 from math import sqrt, cos, sin, radians, degrees, atan
 from random import uniform, getrandbits
-import socketclient
+import multiplayer
 import threading
 from time import sleep
 
 #serverAdress = ('localhost', 4422)
-serverAdress = ('10.146.76.127', 4422)
+serverAdress = ('80.198.253.146', 4422)
 user = ('meatface', '1234')
 versionText = 'Zython pre-beta'
-displayWidth, displayHeight = 1024, 500
+displayWidth, displayHeight = 1920, 1080
 
 pygame.init()
 pygame.font.init()
@@ -392,8 +392,7 @@ def conn_success():
 	player.x, player.y = recv['start_connection']['position']
 	def sendData():
 		while running:
-			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle, 'fired': player.weapon1.fired}})))
-			player.weapon1.fired = True
+			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}})))
 			oldPuppetList = sorted([puppet.username for puppet in game.world.players.find("Puppet")])
 			newPuppetList = sorted(recv['player_data'].keys())
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
@@ -407,12 +406,8 @@ def conn_success():
 				puppet.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
-				if recv['player_data'][puppet.username]['fired']:
-					puppet.weapon1.fire()
 			for puppet in joinedList:
-				tempData = recv['player_data'][puppet]
-				del tempData['fired']
-				game.world.players.create(Puppet, {'username': puppet, **tempData})
+				game.world.players.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
 				game.world.players.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
 				game.world.players.subObjects[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
 
@@ -430,7 +425,7 @@ def conn_error(a):
 #clock.tick(60)
 
 connecting = True
-server = socketclient.NetworkClient(1, conn_success, conn_error)
+server = multiplayer.NetworkClient(1, conn_success, conn_error)
 server.establishConnection(*serverAdress)
 
 #while connecting:
@@ -448,7 +443,7 @@ def update_chunk():
 			loaded_chunks.append(cd.split(':')[0])
 
 			game.world.mapobjects.create(Chunk, {'x':eval(cd.split(':')[0])[0],'y':eval(cd.split(':')[0])[1], 'tex':str(cd.split(':')[1])})
-	#print(loaded_chunks)
+	print(loaded_chunks)
 
 while running:
 	mousePos=pygame.mouse.get_pos()
