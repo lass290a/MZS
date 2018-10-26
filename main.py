@@ -9,7 +9,7 @@ from time import sleep
 serverAdress = ('80.198.253.146', 4422)
 user = ('meatface', '1234')
 versionText = 'Zython pre-beta'
-displayWidth, displayHeight = 1920, 1080
+displayWidth, displayHeight = 1200, 800
 
 pygame.init()
 pygame.font.init()
@@ -385,6 +385,7 @@ game=Game()
 
 def conn_success():
 	#game.world.noteText.setText('Connected to '+serverAdress[0]+' on port '+str(serverAdress[1]), (0, 0, 0))
+	print('connected to server')
 	global connecting
 	connecting = False
 	player = game.world.players.player
@@ -406,6 +407,7 @@ def conn_success():
 				puppet.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
+				if recv['player_data'][puppet.username]['fired']: puppet.weapon1.fire()
 			for puppet in joinedList:
 				game.world.players.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
 				game.world.players.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
@@ -443,7 +445,7 @@ def update_chunk():
 			loaded_chunks.append(cd.split(':')[0])
 
 			game.world.mapobjects.create(Chunk, {'x':eval(cd.split(':')[0])[0],'y':eval(cd.split(':')[0])[1], 'tex':str(cd.split(':')[1])})
-	print(loaded_chunks)
+	#print(loaded_chunks)
 
 while running:
 	mousePos=pygame.mouse.get_pos()
