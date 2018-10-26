@@ -89,8 +89,8 @@ def event_handler(raw_json):
 					return str({'connection_denied':'wrong_password'})
 		else:
 			address_id[address] = event_data['start_connection']['username']
-			database.create(Player, {'username':user})
-			player_ref = database.find(username=user)
+			database.create(Player, {'username':event_data['start_connection']['username']})
+			player_ref = database.find(username=event_data['start_connection']['username'])
 			print('User Created!')
 			return str({'start_connection':{'position':player_ref.position}})
 	else:
