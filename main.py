@@ -285,7 +285,7 @@ class Player(Object):
 			pass
 
 class Puppet(Object):
-	def __init__(self, username, position, angle, parent):
+	def __init__(self, username, position, angle, fired, parent):
 		super().__init__(
 			sprite='body',
 			spriteSize=70,
