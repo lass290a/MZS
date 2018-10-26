@@ -6,8 +6,10 @@ import threading
 from time import sleep
 
 #serverAdress = ('localhost', 4422)
+#user = ('AlexBMJ', '4312')
 serverAdress = ('80.198.253.146', 4422)
 user = ('meatface', '1234')
+
 versionText = 'Zython pre-beta'
 displayWidth, displayHeight = 1200, 800
 
@@ -121,7 +123,6 @@ class Object:
 		self.pos=[self.x, self.y]
 		self.realPos=[self.realX, self.realY]
 		return rot_center(self.sprite, self.realAngle), (self.realX-self.spriteSize/2, self.realY-self.spriteSize/2)		
-
 class Widget:
 	def __init__(self, sprite='nosprite', angle=0, spriteSize=(10, 10), x=0, y=0, parent=None, relativePos=False):
 		self.x=x
@@ -181,33 +182,28 @@ class Widget:
 		self.pos=[self.x, self.y]
 		self.realPos=[self.realX, self.realY]
 		return rot_center(self.sprite, self.realAngle), (self.realX-self.spriteSize[0]/2, self.realY-self.spriteSize[1]/2)		
-
 class Game(Object):
 	def __init__(self):
 		super().__init__()
 		self.world = self.create(World)
 		#self.overlay = self.create(Overlay)
-
 class Overlay(Object):
 	def __init__(self, parent):
 		super().__init__(
 			parent=parent)
 		self.create(Window)
-
 class Players(Object):
 	def __init__(self, parent):
 		super().__init__(
 			parent=parent,
 			relativePos=True)
 		self.player=self.create(Player, {'x':0, 'y':0})
-
 class MapObjects(Object):
 	def __init__(self, parent):
 		super().__init__(
 			parent=parent,
 			relativePos=True
 			)
-
 class World(Object):
 	def __init__(self, parent):
 		super().__init__(
@@ -224,7 +220,6 @@ class World(Object):
 			self.x, self.y=-self.players.player.x + displayWidth/2, -self.players.player.y + displayHeight/2
 		except:
 			pass
-
 class Chunk(Object):
 	def __init__(self, x, y, tex, parent):
 		super().__init__(
@@ -234,7 +229,6 @@ class Chunk(Object):
 			y=y,
 			parent=parent,
 			relativePos=True)
-
 class Window(Widget):
 	def __init__(self, parent):
 		super().__init__(
@@ -243,7 +237,6 @@ class Window(Widget):
 			x=500,
 			y=500,
 			parent=parent)
-
 class Player(Object):
 	def __init__(self, x, y, parent):
 		super().__init__(
@@ -283,7 +276,6 @@ class Player(Object):
 		try:self.angle = posToAng(self.pointPos[0], self.pointPos[1])
 		except ZeroDivisionError:
 			pass
-
 class Puppet(Object):
 	def __init__(self, username, position, angle, fired, parent):
 		super().__init__(
@@ -298,7 +290,6 @@ class Puppet(Object):
 		self.head = self.create(Head)
 		self.weapon1 = self.create(Weapon1)
 		self.username = username
-
 class Weapon1(Object):
 	def __init__(self, parent):
 		super().__init__(
@@ -313,7 +304,6 @@ class Weapon1(Object):
 		self.weaponClk=not self.weaponClk
 		self.fired=True
 		self.subObjects[self.weaponClk].fire()
-
 class Weapon1Arm(Object):
 	def __init__(self, side, parent):
 		self.side=[-1, 1][side=='armleft']
@@ -341,7 +331,6 @@ class Weapon1Arm(Object):
 			self.realAngle = self.angle
 		else:
 			self.realAngle = self.angle + self.shootAngle
-
 class Head(Object):
 	def __init__(self, parent):
 		super().__init__(
@@ -352,7 +341,6 @@ class Head(Object):
 
 	def run(self):
 		self.angle=self.parent.angle
-
 class Muzzleflash(Object):
 	def __init__(self, parent):
 		super().__init__(
@@ -369,7 +357,6 @@ class Muzzleflash(Object):
 		self.destructTimer+=1
 		if self.destructTimer==3:
 			self.delete()
-
 class Text(Object):
 	def __init__(self, x, y, text, color, parent):
 		super().__init__(
@@ -393,7 +380,7 @@ def conn_success():
 	player.x, player.y = recv['start_connection']['position']
 	def sendData():
 		while running:
-			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle}})))
+			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle, 'fired': player.weapon1.fired}})))
 			oldPuppetList = sorted([puppet.username for puppet in game.world.players.find("Puppet")])
 			newPuppetList = sorted(recv['player_data'].keys())
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
