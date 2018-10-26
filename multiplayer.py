@@ -1,8 +1,8 @@
 import socket
 import threading
-import sys
+from sys import exit
 
-class ThreadedServer(object):
+class ThreadedServer:
 	def __init__(self, host, port, events, callback):
 		self.callback = callback
 		self.events = events
@@ -38,5 +38,38 @@ class ThreadedServer(object):
 				client.close()
 				return False
 
+class NetworkClient:
+	def __init__(self, timeout, success_callback, failed_callback):
+		self.success_callback = success_callback
+		self.failed_callback = failed_callback
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.sock.settimeout(timeout)
+
+	def establishConnection(self, ip_address, port_nr):
+		try:
+			self.sock.connect((ip_address, port_nr))
+			self.success_callback()
+		except Exception as errormsg:
+			self.failed_callback(errormsg)
+
+	def sendData(self, strdata):
+		try:
+			self.sock.send(str(strdata).encode())
+			response = self.sock.recv(1024).decode()
+			return str(response)
+		except socket.timeout as errormsg:
+			self.failed_callback(errormsg)
+
+def conn_success():
+	print('CONNECTION SUCCESSFUL')
+
+def conn_error(msg):
+	print(f'CONNECTION ERROR: {msg}')
+	exit()
+
+
 if __name__ == "__main__":
-	ThreadedServer('',4422, 0).listen()
+	server = NetworkClient(10, conn_success, conn_error)
+	server.establishConnection("localhost", 4422)
+	resp = server.sendData(str('test'))
+	print(resp)
