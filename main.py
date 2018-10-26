@@ -5,10 +5,8 @@ import multiplayer
 import threading
 from time import sleep
 
-#serverAdress = ('localhost', 4422)
-#user = ('AlexBMJ', '4312')
-serverAdress = ('80.198.253.146', 4422)
-user = ('meatface', '1234')
+#serverAdress = ('localhost', 4422); user = ('AlexBMJ', '4312')
+serverAdress = ('80.198.253.146', 4422); user = ('meatface', '1234')
 
 versionText = 'Zython pre-beta'
 displayWidth, displayHeight = 1200, 800
@@ -370,6 +368,8 @@ class Text(Object):
 
 game=Game()
 
+boolDelay = False
+
 def conn_success():
 	#game.world.noteText.setText('Connected to '+serverAdress[0]+' on port '+str(serverAdress[1]), (0, 0, 0))
 	print('connected to server')
@@ -379,9 +379,15 @@ def conn_success():
 	recv = eval(server.sendData(str({'start_connection':{'username':user[0], 'password':user[1]}})))
 	player.x, player.y = recv['start_connection']['position']
 	def sendData():
+		global boolDelay
 		while running:
-			recv = eval(server.sendData(str({'player_data':{'position':(player.x, player.y) , 'angle':player.angle, 'fired': player.weapon1.fired}})))
-			if player.weapon1.fired: player.weapon1.fired = False
+			if boolDelay == True:
+				player.weapon1.fired = False
+				boolDelay = False
+			if player.weapon1.fired:
+				boolDelay = True
+			recv = eval(server.sendData(str({'player_data':{'position':(round(player.x, 2), round(player.y, 2)) , 'angle':round(player.angle, 2), 'fired': player.weapon1.fired}})))
+			print(player.weapon1.fired)
 			oldPuppetList = sorted([puppet.username for puppet in game.world.players.find("Puppet")])
 			newPuppetList = sorted(recv['player_data'].keys())
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
@@ -395,7 +401,9 @@ def conn_success():
 				puppet.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
-				if recv['player_data'][puppet.username]['fired']: puppet.weapon1.fire()
+				#print(puppet.username, recv['player_data'][puppet.username]['fired'])
+				if recv['player_data'][puppet.username]['fired']:
+					puppet.weapon1.fire()
 			for puppet in joinedList:
 				game.world.players.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
 				game.world.players.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
@@ -447,10 +455,8 @@ while running:
 		if event.type==pygame.KEYUP:
 			del heldKeys[heldKeys.index(chr(event.key))]
 		if event.type==pygame.MOUSEBUTTONDOWN:
-			try:
-				game.world.players.player.weapon1.fire()
-			except:
-				pass
+			game.world.players.player.weapon1.fire()
+
 	if '' in heldKeys:
 		running=False
 	update_chunk()
