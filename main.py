@@ -388,7 +388,7 @@ def conn_success():
 	player.x, player.y = recv['start_connection']['position']
 	def sendData():
 		while running:
-			recv = eval(server.sendData(str({'player_data':{'position':(round(player.x, 2), round(player.y, 2)) , 'angle':round(player.angle, 2), 'fired': player.weapon1.fired}})))
+			recv = eval(server.sendData(str({'player_data':{'position':(round(player.x, 2), round(player.y, 2)) , 'angle':round(player.angle, 2), 'targetFired': player.weapon1.targetFired}})))
 			print(player.weapon1.fired)
 			oldPuppetList = sorted([puppet.username for puppet in game.world.players.find("Puppet")])
 			newPuppetList = sorted(recv['player_data'].keys())
@@ -403,8 +403,9 @@ def conn_success():
 				puppet.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
-				#print(puppet.username, recv['player_data'][puppet.username]['fired'])
+				print(puppet.username, recv['player_data'][puppet.username]['targetFired'])
 				puppet.weapon1.targetFired = recv['player_data'][puppet.username]['targetFired']
+
 			for puppet in joinedList:
 				game.world.players.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
 				game.world.players.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
