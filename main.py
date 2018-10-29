@@ -301,12 +301,13 @@ class Weapon1(Object):
 		self.fired=targetFired
 
 	def fire(self):
-		self.fired += 1
-		self.weaponClk=not self.weaponClk
+		if self.parent.name != 'Puppet':
+			self.targetFired += 1
+		self.weaponClk = not self.weaponClk
 		self.subObjects[self.weaponClk].fire()
 
 	def run(self):
-		if self.targetFired != None:
+		if self.parent.name == 'Puppet':
 			if self.fired < self.targetFired:
 				self.fired+=1
 				self.fire()
@@ -329,7 +330,7 @@ class Weapon1Arm(Object):
 		self.create(Muzzleflash)
 
 	def run(self):
-		self.shootAngle /=1.2
+		self.shootAngle /= 1.2
 		if self.parent.parent.type == 'Player':
 			self.pointPos=[[self.realX, self.realY][i] - mousePos[i] for i in range(2)]
 			try:self.angle=posToAng(self.pointPos[0], self.pointPos[1])+self.shootAngle+self.side*-3
@@ -389,11 +390,11 @@ def conn_success():
 	def sendData():
 		while running:
 			recv = eval(server.sendData(str({'player_data':{'position':(round(player.x, 2), round(player.y, 2)) , 'angle':round(player.angle, 2), 'targetFired': player.weapon1.targetFired}})))
-			print(player.weapon1.fired)
 			oldPuppetList = sorted([puppet.username for puppet in game.world.players.find("Puppet")])
 			newPuppetList = sorted(recv['player_data'].keys())
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
 			joinedList = list(set(newPuppetList)-set(oldPuppetList))
+			print(player.weapon1.fired)
 			#print(recv['player_data'], joinedList, disconnectedList)
 			for puppet in game.world.players.find('Puppet'):
 				if puppet in disconnectedList:
