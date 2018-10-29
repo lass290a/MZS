@@ -403,12 +403,12 @@ def conn_success():
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
 				#print(puppet.username, recv['player_data'][puppet.username]['fired'])
-				puppet.weapon1.targetFired = recv['player_data'][puppet]['fired']
+				puppet.weapon1.targetFired = recv['player_data'][puppet]['targetFired']
 			for puppet in joinedList:
 				game.world.players.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
 				game.world.players.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
 				game.world.players.subObjects[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
-				game.world.players.subObjects[-1].weapon1.targetFired = recv['player_data'][puppet]['fired']
+				game.world.players.subObjects[-1].weapon1.targetFired = recv['player_data'][puppet]['targetFired']
 
 
 	threading.Thread(target=sendData).start()
