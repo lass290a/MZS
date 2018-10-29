@@ -1,12 +1,12 @@
 from multiplayer import ThreadedServer
 
 class Object:
-	def __init__(self, username=None, type=None, parent=None, position=(0,0), angle=0, fired=0):
+	def __init__(self, username=None, type=None, parent=None, position=(0,0), angle=0, targetFired=0):
 		self.username = username
 		self.position = position
 		self.angle = angle
 		self.type = type
-		self.fired = fired
+		self.targetFired = targetFired
 		self.parent = parent
 		self.subObjects=[]
 
@@ -55,7 +55,7 @@ class Player(Object):
 			type='Player',
 			position=(0,0),
 			angle=0,
-			fired=0,
+			targetFired=0,
 			parent=parent)
 
 address_id = {}
@@ -105,7 +105,7 @@ def event_handler(raw_json):
 	for user in list(address_id.values()):
 		if user != player_ref.username:
 			temp_user = database.find(username=user)
-			send_data['player_data'][user] = {'position':temp_user.position, 'angle':temp_user.angle, 'fired':temp_user.fired}
+			send_data['player_data'][user] = {'position':temp_user.position, 'angle':temp_user.angle, 'targetFired':temp_user.targetFired}
 	return str(send_data)
 
 
