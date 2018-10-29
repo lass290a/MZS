@@ -1,7 +1,7 @@
 from multiplayer import ThreadedServer
 
 class Object:
-	def __init__(self, username=None, type=None, parent=None, position=(0,0), angle=0, fired=False):
+	def __init__(self, username=None, type=None, parent=None, position=(0,0), angle=0, fired=0):
 		self.username = username
 		self.position = position
 		self.angle = angle
@@ -55,7 +55,7 @@ class Player(Object):
 			type='Player',
 			position=(0,0),
 			angle=0,
-			fired=False,
+			fired=0,
 			parent=parent)
 
 address_id = {}
