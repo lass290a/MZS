@@ -5,8 +5,8 @@ import multiplayer
 import threading
 from time import sleep
 
-#serverAdress = ('localhost', 4422); user = ('AlexBMJ', '4312')
-serverAdress = ('80.198.253.146', 4422); user = ('meatface', '1234')
+#serverAddress = ('localhost', 4422); user = ('AlexBMJ', '4312')
+serverAddress = ('10.146.94.119', 4422); user = ('meatface', '1234')
 
 versionText = 'Zython pre-beta'
 displayWidth, displayHeight = 1100, 500
@@ -254,7 +254,7 @@ class Player(Object):
 		#self.pointAccel=3
 		self.states={}
 		self.pointPos = (0, 0)
-		self.weapon1 = self.create(Weapon1)
+		self.weapon1 = self.create(Weapon1, {'targetFired': 0})
 		self.head = self.create(Head)
 
 	def run(self):
@@ -290,7 +290,7 @@ class Puppet(Object):
 		self.username = username
 
 class Weapon1(Object):
-	def __init__(self, targetFired=None, parent):
+	def __init__(self, targetFired, parent):
 		super().__init__(
 			parent=parent,
 			y=-60)
@@ -305,7 +305,7 @@ class Weapon1(Object):
 		self.subObjects[self.weaponClk].fire()
 
 	def run(self):
-		if targetFired != None:
+		if self.targetFired != None:
 			if self.fired < self.targetFired:
 				self.fired+=1
 				self.fire()
@@ -378,7 +378,7 @@ game=Game()
 
 
 def conn_success():
-	#game.world.noteText.setText('Connected to '+serverAdress[0]+' on port '+str(serverAdress[1]), (0, 0, 0))
+	#game.world.noteText.setText('Connected to '+serverAddress[0]+' on port '+str(serverAddress[1]), (0, 0, 0))
 	print('connected to server')
 	global connecting
 	connecting = False
@@ -426,7 +426,7 @@ def conn_error(a):
 
 connecting = True
 server = multiplayer.NetworkClient(1, conn_success, conn_error)
-server.establishConnection(*serverAdress)
+server.establishConnection(*serverAddress)
 
 #while connecting:
 #	sleep(0.05)
