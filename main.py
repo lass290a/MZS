@@ -6,7 +6,7 @@ import threading
 from time import sleep
 
 #serverAddress = ('localhost', 4422); user = ('AlexBMJ', '4312')
-serverAddress = ('10.146.94.119', 4422); user = ('meatface', '1234')
+serverAddress = ('80.198.253.146', 4422); user = ('meatface', '1234')
 
 versionText = 'Zython pre-beta'
 displayWidth, displayHeight = 1100, 500
@@ -301,6 +301,7 @@ class Weapon1(Object):
 		self.fired=targetFired
 
 	def fire(self):
+		self.fired += 1
 		self.weaponClk=not self.weaponClk
 		self.subObjects[self.weaponClk].fire()
 
@@ -403,7 +404,7 @@ def conn_success():
 				puppet.weapon1.rightarm.angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
 				#print(puppet.username, recv['player_data'][puppet.username]['fired'])
-				puppet.weapon1.targetFired = recv['player_data'][puppet]['targetFired']
+				puppet.weapon1.targetFired = recv['player_data'][puppet.username]['targetFired']
 			for puppet in joinedList:
 				game.world.players.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
 				game.world.players.subObjects[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
