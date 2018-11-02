@@ -72,14 +72,14 @@ def dist(A, B, P):
 		return norm(P - B)
 	return round(norm(cross(A-B, A-P))/norm(B-A),3)
 
-def hitReg(player_loc, player_angle):
+def hitReg(player_ref):
 	player_objs = database.find(type='Player')
 
 	for target in player_objs:
-		if norm(array(target.position) - array(player_loc))[0] < 10:
-			line_seg = (array(player_pos), array((player_pos[0]+10*sin(radians(player_angle)), player_pos[1]+10*cos(radians(player_angle)))))
-			if dist(*line_seg, array(target.position)) < 1:
-				print('hit')
+		if norm(array(target.position) - array(player_ref.position)).tolist() < 10 and target != player_ref:
+			line_seg = (array(player_ref.position), array((player_ref.position[0]+10*sin(radians(player_ref.angle)), player_ref.position[1]+10*cos(radians(player_ref.angle)))))
+			if dist(*line_seg, array(target.position)) < 200:
+				print('hit '+ target.username)
 
 
 address_id = {}
@@ -124,13 +124,11 @@ def event_handler(raw_json):
 	for event in event_data['player_data']:
 		if event == 'targetFired':			
 			while event_data['player_data'][event] > player_ref.targetFired:
-				hitReg(player_ref.position, player_ref.angle)
+				hitReg(player_ref)
 				player_ref.targetFired += 1
 
 		else:
 			setattr(player_ref, event, event_data['player_data'][event])
-
-		
 
 	send_data = {'player_data':{}}
 	for user in list(address_id.values()):
