@@ -73,21 +73,31 @@ def dist(A, B, P):
 	return round(norm(cross(A-B, A-P))/norm(B-A),3)
 
 def hitReg(player_ref):
+	bullet_travel = 1000
+	player_hitbox = 70
+
+	# MASSIVE BODGE!!!! CLIENT SIDE COORDINATE SYSTEM SHOULD BE FIXED INSTEAD!!!!
+	player_pos = (player_ref.position[0],player_ref.position[1]*-1)
+	player_angle = (player_ref.angle-450)*-1
+
+	
 	player_objs = database.find(type='Player')
-
 	for target in player_objs:
-		if norm(array(target.position) - array(player_ref.position)).tolist() < 10 and target != player_ref:
-			line_seg = (array(player_ref.position), array((player_ref.position[0]+10*sin(radians(player_ref.angle)), player_ref.position[1]+10*cos(radians(player_ref.angle)))))
-			if dist(*line_seg, array(target.position)) < 200:
-				print('hit '+ target.username)
+		
+		# SAME MASSIVE BODGE!!!!!! FIX CLIENT COORDINATES
+		target_pos = (target.position[0],target.position[1]*-1)
 
+		if norm(array(target_pos) - array(player_pos)).tolist() < bullet_travel and target != player_ref:
+			line_seg = (array(player_pos), array((player_pos[0]+bullet_travel*sin(radians(player_angle)), player_pos[1]+bullet_travel*cos(radians(player_angle)))))
+			if dist(*line_seg, array(target_pos)) < player_hitbox:
+				print('hit '+ target.username)
 
 address_id = {}
 
 database = Database()
 
 def server_started():
-	print('Server is running!')
+	print('[Server Started]')
 
 def event_handler(raw_json):
 	#print(raw_json)
