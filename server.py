@@ -32,14 +32,30 @@ class Object:
 					if self.parent.subObjects!=[] and str(self.parent)!=string:
 						self.parent.subObjects[0].delete(string)
 
-	def find(self, username=None, type=None):
-		if username == None and type == None:
+	def find(self, username=None, type=None, near=None):
+		if username == None and type == None and near == None:
 			raise error('find() needs an input')
 		elif username != None:
 			for object in self.subObjects:
 				if object.username==username:
 					return object
 			return False
+
+		elif near != None and type != None:
+			objects=[]
+			for object in self.subObjects:
+				if object.type==type and norm(array(getattr(near['object_ref'],'position')) - array(object.position)) < near['radius']:
+					objects.append(object)
+			return objects
+
+		elif near != None:
+			objects=[]
+			for object in self.subObjects:
+				if norm(array(getattr(near['object_ref'],'position')) - array(object.position)) < near['radius']:
+					objects.append(object)
+			return objects
+
+
 		elif type != None:
 			objecttype=[]
 			for object in self.subObjects:
@@ -87,10 +103,10 @@ def hitReg(player_ref):
 		# SAME MASSIVE BODGE!!!!!! FIX CLIENT COORDINATES
 		target_pos = (target.position[0],target.position[1]*-1)
 
-		if norm(array(target_pos) - array(player_pos)).tolist() < bullet_travel and target != player_ref:
+		if norm(array(target_pos) - array(player_pos)).tolist() < bullet_travel and if sin(radians(player_angle+90))*(player_pos[2]-target_pos[2]) >= cos(radians(player_angle+90))*(player_pos[1]-target_pos[1]) and target.username in list(address_id.values()) and target != player_ref:
 			line_seg = (array(player_pos), array((player_pos[0]+bullet_travel*sin(radians(player_angle)), player_pos[1]+bullet_travel*cos(radians(player_angle)))))
 			if dist(*line_seg, array(target_pos)) < player_hitbox:
-				print('hit '+ target.username)
+				print(player_ref.username + ' hit '+ target.username)
 
 address_id = {}
 
@@ -130,9 +146,8 @@ def event_handler(raw_json):
 		for user_ip in address_id:
 			if address == user_ip:
 				player_ref = database.find(username=address_id[user_ip])
-
 	for event in event_data['player_data']:
-		if event == 'targetFired':			
+		if event == 'targetFired':
 			while event_data['player_data'][event] > player_ref.targetFired:
 				hitReg(player_ref)
 				player_ref.targetFired += 1
