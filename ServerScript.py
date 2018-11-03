@@ -5,9 +5,10 @@ from math import sin, cos, tan, degrees, radians, sqrt
 from multiplayer import ThreadedServer
 
 class Object:
-	def __init__(self, username=None, type=None, parent=None, position=(0,0), angle=0, targetFired=0):
+	def __init__(self, username=None, type=None, chunk=None, parent=None, position=(0,0), angle=0, targetFired=0):
 		self.username = username
 		self.position = position
+		self.chunk = chunk
 		self.angle = angle
 		self.type = type
 		self.targetFired = targetFired
@@ -32,18 +33,26 @@ class Object:
 					if self.parent.subObjects!=[] and str(self.parent)!=string:
 						self.parent.subObjects[0].delete(string)
 
-	def find(self, username=None, type=None):
-		if username == None and type == None:
+	def find(self, username=None, type=None, chunk=None):
+		if username == None and type == None and chunk == None:
 			raise error('find() needs an input')
 		elif username != None:
 			for object in self.subObjects:
 				if object.username==username:
 					return object
 			return False
+
 		elif type != None:
 			objecttype=[]
 			for object in self.subObjects:
 				if object.type==type:
+					objecttype.append(object)
+			return objecttype
+
+		elif chunk != None:
+			objecttype=[]
+			for object in self.subObjects:
+				if object.chunk==chunk:
 					objecttype.append(object)
 			return objecttype
 
@@ -58,6 +67,7 @@ class Player(Object):
 			username=username,
 			type='Player',
 			position=(0,0),
+			chunk=(2,2),
 			angle=0,
 			targetFired=0,
 			parent=parent)
@@ -87,10 +97,10 @@ def hitReg(player_ref):
 		# SAME MASSIVE BODGE!!!!!! FIX CLIENT COORDINATES
 		target_pos = (target.position[0],target.position[1]*-1)
 
-		if norm(array(target_pos) - array(player_pos)).tolist() < bullet_travel and target != player_ref:
+		if norm(array(target_pos) - array(player_pos)).tolist() < bullet_travel and target_pos[0] and target.username in list(address_id.values()) and target != player_ref:
 			line_seg = (array(player_pos), array((player_pos[0]+bullet_travel*sin(radians(player_angle)), player_pos[1]+bullet_travel*cos(radians(player_angle)))))
 			if dist(*line_seg, array(target_pos)) < player_hitbox:
-				print('hit '+ target.username)
+				print(player_ref.username + ' hit '+ target.username)
 
 address_id = {}
 
@@ -130,9 +140,8 @@ def event_handler(raw_json):
 		for user_ip in address_id:
 			if address == user_ip:
 				player_ref = database.find(username=address_id[user_ip])
-
 	for event in event_data['player_data']:
-		if event == 'targetFired':			
+		if event == 'targetFired':
 			while event_data['player_data'][event] > player_ref.targetFired:
 				hitReg(player_ref)
 				player_ref.targetFired += 1
