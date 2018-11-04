@@ -30,9 +30,10 @@ class Game(arcade.Window):
 	def __init__(self, width, height):
 		super().__init__(width, height)
 		arcade.set_background_color(arcade.color.ASH_GREY)
-		self.world = World()
-		self.overlay = Overlay()
+		self.parent = None
+		self.world = World(self)
 		self.world.screenWidth, self.world.screenHeight = screenWidth, screenHeight
+		self.overlay = Overlay(self)
 		self.focused = None
 		self.focusedTriggers = []
 		self.focus(self.world)
@@ -83,14 +84,6 @@ class Game(arcade.Window):
 				render(obj)
 		render(self.world)
 		render(self.overlay)
-		'''arcade.draw_text(
-			"Here's an incredible window, my dudes",
-			self.world.mousePos[0],
-			self.world.mousePos[1],
-			arcade.color.BLACK,
-			14,
-			anchor_y='top',
-			font_name='Franklin Gothic Medium Cond')'''
 
 game = Game(screenWidth, screenHeight)
 mousePos = ()
