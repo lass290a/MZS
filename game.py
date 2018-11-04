@@ -119,7 +119,7 @@ def connectionSuccess():
 			puppet.weapon1.leftarm.angle = recv['player_data'][puppet.username]['angle']
 			puppet.weapon1.targetFired = recv['player_data'][puppet.username]['targetFired']
 		for puppet in joinedList:
-			game.world.create(Puppet, {'username': puppet, **recv['player_data'][puppet]})
+			game.world.create(Puppet, username=puppet, **recv['player_data'][puppet])
 			game.world.children[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
 			game.world.children[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
 			game.world.children[-1].weapon1.targetFired = recv['player_data'][puppet]['targetFired']
