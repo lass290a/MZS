@@ -96,7 +96,6 @@ game = Game(screenWidth, screenHeight)
 mousePos = ()
 
 def connectionSuccess():
-	#game.world.noteText.setText('Connected to '+serverAddress[0]+' on port '+str(serverAddress[1]), (0, 0, 0))
 	print('connected to server')
 	global connecting
 	connecting = False
@@ -105,7 +104,6 @@ def connectionSuccess():
 	player.x, player.y = recv['start_connection']['position']
 	def sendData():
 		while True:
-			#print('loop')
 			timer = datetime.now()
 			recv = eval(server.sendData(str({'player_data':{'position':(round(player.X, 2), round(player.Y, 2)) , 'angle':round(player.Angle, 2), 'targetFired': player.weapon1.targetFired}})))
 			print(recv, flush=True)

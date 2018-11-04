@@ -246,8 +246,7 @@ class Weapon1Arm(Object):
 			except ZeroDivisionError:
 				pass
 		else:
-			self.Angle += 1
-			#self.angle = self.Angle + self.shootAngle
+			self.angle = self.Angle + self.shootAngle
 
 class Head(Object):
 	def __init__(self, parent):
