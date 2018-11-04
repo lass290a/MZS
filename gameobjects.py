@@ -213,10 +213,12 @@ class Muzzleflash(Object):
 			sprite='flash',
 			size=1.2,
 			parent=parent,
-			X=parent.center_x+80,
-			Y=parent.center_y-10*parent.side)
+			X=parent.center_x+cos(radians(parent.angle))*85+cos(radians(parent.angle+90))*-10*parent.side,
+			Y=parent.center_y+sin(radians(parent.angle))*85+sin(radians(parent.angle+90))*-10*parent.side)
 		self.Angle=self.parent.Angle
 		self.destructTimer=0
+
+
 
 	def run(self):
 		self.destructTimer+=1

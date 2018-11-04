@@ -8,8 +8,8 @@ from datetime import datetime
 #serverAddress = ('80.198.253.146', 4422); user = ('meatface', '1234')
 serverAddress = ('localhost', 4422); user = ('meatface', '1234')
 
-versionText = 'Zython pre-beta'
-screenWidth, screenHeight = 900, 700
+versionText = 'Zython pre-beta (arcade)'
+screenWidth, screenHeight = 1600, 900
 
 class Game(arcade.Window):
 	def focus(self, object):
@@ -18,7 +18,7 @@ class Game(arcade.Window):
 		self.focused = object
 		if 'start_focus' in dir(object):
 			object.start_focus()
-		for trigger in ['on_mouse_motion', 'on_mouse_press', 'on_key_press', 'on_key_release']:
+		for trigger in ['on_mouse_motion', 'on_mouse_press', 'on_mouse_release', 'on_key_press', 'on_key_release']:
 			if trigger in dir(self.focused):
 				self.focusedTriggers.append(trigger)
 
@@ -38,7 +38,10 @@ class Game(arcade.Window):
 	def on_mouse_press(self, x, y, button, modifiers):
 		if 'on_mouse_press' in self.focusedTriggers:
 			self.focused.on_mouse_press(x, y, button, modifiers)
-		#arcade.MOUSE_BUTTON_LEFT:
+
+	def on_mouse_release(self, x, y, button, modifiers):
+		if 'on_mouse_release' in self.focusedTriggers:
+			self.focused.on_mouse_release(x, y, button, modifiers)
 
 	def on_key_press(self, key, modifiers):
 		if 'on_key_press' in self.focusedTriggers:
@@ -47,7 +50,6 @@ class Game(arcade.Window):
 	def on_key_release(self, key, modifiers):
 		if 'on_key_release' in self.focusedTriggers:
 			self.focused.on_key_release(key, modifiers)
-		#arcade.key.UP:
 
 	def on_draw(self):
 		arcade.start_render()
