@@ -115,7 +115,7 @@ def connectionSuccess():
 				if puppet in disconnectedList:
 					puppet.delete()
 			for puppet in game.world.find('Puppet'):
-				puppet.X, puppet.X = recv['player_data'][puppet.username]['position']
+				puppet.X, puppet.Y = recv['player_data'][puppet.username]['position']
 				puppet.Angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.rightarm.Angle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.leftarm.Angle = recv['player_data'][puppet.username]['angle']
