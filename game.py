@@ -4,9 +4,13 @@ from gameobjects import *
 import threading
 from datetime import datetime
 
+local_file = open('localip.txt','r').read().split('\n')
+
 #serverAddress = ('localhost', 4422); user = ('AlexBMJ', '4312')
-serverAddress = ('80.198.253.146', 4422); user = ('meatface', '1234')
-#serverAddress = ('localhost', 4422); user = ('meatface', '1234')
+#serverAddress = ('80.198.253.146', 4422); user = ('meatface', '1234')
+
+user = (local_file[0])
+serverAddress = (local_file[1],local_file[2])
 
 versionText = 'Zython pre-beta (arcade)'
 screenWidth, screenHeight = (1600//5)*4, (900//5)*4
