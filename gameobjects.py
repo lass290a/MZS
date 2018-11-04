@@ -74,6 +74,7 @@ class World(Object):
 
 	def stop_focus(self):
 		print('stop_focus')
+		self.heldKeys = []
 
 	def on_mouse_motion(self, x, y, dx, dy):
 		self.mousePos = (x, y)
@@ -217,8 +218,6 @@ class Muzzleflash(Object):
 			Y=parent.center_y+sin(radians(parent.angle))*85+sin(radians(parent.angle+90))*-10*parent.side)
 		self.Angle=self.parent.Angle
 		self.destructTimer=0
-
-
 
 	def run(self):
 		self.destructTimer+=1

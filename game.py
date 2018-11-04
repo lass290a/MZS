@@ -54,9 +54,10 @@ class Game(arcade.Window):
 	def on_draw(self):
 		arcade.start_render()
 		def render(object):
-			object.render()
 			if 'run' in dir(object):
 				object.run()
+			if 'render' in dir(object):
+				object.render()
 			for obj in object.children:
 				render(obj)
 		render(self.world)
