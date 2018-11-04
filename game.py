@@ -3,6 +3,7 @@ import arcade
 from gameobjects import *
 import threading
 from datetime import datetime
+from time import sleep
 
 local_file = open('localip.txt','r').read().split('\n')
 
