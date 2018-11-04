@@ -340,6 +340,7 @@ class Weapon1Arm(Object):
 			self.realAngle = self.angle
 		else:
 			self.realAngle = self.angle + self.shootAngle
+
 class Head(Object):
 	def __init__(self, parent):
 		super().__init__(
@@ -366,6 +367,7 @@ class Muzzleflash(Object):
 		self.destructTimer+=1
 		if self.destructTimer==3:
 			self.delete()
+
 class Text(Object):
 	def __init__(self, x, y, text, color, parent):
 		super().__init__(
