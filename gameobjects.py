@@ -1,12 +1,12 @@
 import arcade
-from random import randint
+from random import randint, uniform, getrandbits
 from math import sin, cos, radians, degrees, atan
 import glob, os
 
 sprites={os.path.basename(os.path.splitext(filetype)[0]):filetype for filetype in glob.iglob(os.path.dirname(os.path.abspath(__file__))+'/**/*.png', recursive=True)}
 
 def posToAng(x, y):
-	return 180+(-atan((y)/(x))*57.2957795+180*((x) < 0))
+	return 180+(atan((y)/(x))*57.2957795+180*((x) < 0))
 
 class Object(arcade.Sprite):
 	def __init__(self, sprite='nosprite', size=0.1, parent=None, X=0, Y=0, Angle=0, relPosition=False, relAngle=False):
@@ -31,6 +31,14 @@ class Object(arcade.Sprite):
 
 	def create(self, object, **parameters):
 		self.children.append(object(**parameters, parent=self))
+		return self.children[-1]
+
+	def find(self, type):
+		objecttype=[]
+		for object in self.children:
+			if object.__class__.__name__==type:
+				objecttype.append(object)
+		return objecttype
 
 	def delete(self, string=''):
 		if string=='':
@@ -56,13 +64,40 @@ class World(Object):
 			size=0.7,
 			X=400,
 			Y=300,)
-		self.create(Player, x=100, y=100)
+		self.player = self.create(Player, x=100, y=100)
+		self.mousePos = (0, 0)
+		self.heldKeys=[]
+		#self.create(Puppet, username='MONkEYY', position=(100, 100), angle=45, targetFired=0)
+
+	def start_focus(self):
+		print('start_focus')
+
+	def stop_focus(self):
+		print('stop_focus')
+
+	def on_mouse_motion(self, x, y, dx, dy):
+		self.mousePos = (x, y)
+
+	def on_mouse_press(self, x, y, button, modifiers):
+		if button == arcade.MOUSE_BUTTON_LEFT:
+			self.player.weapon1.fire()
+
+	def on_key_press(self, key, modifiers):
+		self.heldKeys.append(chr(key))
+
+	def on_key_release(self, key, modifiers):
+		del self.heldKeys[self.heldKeys.index(chr(key))]
+
+	def run(self):
+		global screenWidth, screenHeight
+		self.X, self.Y=-self.player.X + self.screenWidth/2, -self.player.Y + self.screenHeight/2
+
 
 class Player(Object):
 	def __init__(self, x, y, parent):
 		super().__init__(
 			sprite='body',
-			size=0.35,
+			size=0.33,
 			X=x,
 			Y=y,
 			parent=parent,
@@ -74,34 +109,42 @@ class Player(Object):
 		self.deaccel=1.4
 		self.accel=2
 		self.pointPos = (0, 0)
+		self.mousePos = (0, 0)
 		self.weapon1 = self.create(Weapon1, targetFired=0)
 		self.head = self.create(Head)
 
 	def run(self):
-		"""
-		if 'a' in heldKeys:
-			self.vectorX -=self.accel
-		if 'd' in heldKeys:
+		if 'a' in self.parent.heldKeys:
+			self.vectorX-=self.accel
+		if 'd' in self.parent.heldKeys:
 			self.vectorX+=self.accel
-		if 'w' in heldKeys:
-			self.vectorY -=self.accel
-		if 's' in heldKeys:
+		if 's' in self.parent.heldKeys:
+			self.vectorY-=self.accel
+		if 'w' in self.parent.heldKeys:
 			self.vectorY+=self.accel
-		"""
 		
-		#self.vectorX+=self.accel
-		#self.vectorY+=self.accel
-		
-		self.Angle += 1
-
 		self.vectorX /=self.deaccel
 		self.vectorY /=self.deaccel
 		self.X+=self.vectorX
 		self.Y+=self.vectorY
-		self.pointPos=[[self.center_x, self.center_y][i] - [100, 100][i] for i in range(2)]
+		self.pointPos=[[self.center_x, self.center_y][i] - self.parent.mousePos[i] for i in range(2)]
 		try:self.Angle = posToAng(self.pointPos[0], self.pointPos[1])
 		except ZeroDivisionError:
 			pass
+
+class Puppet(Object):
+	def __init__(self, username, position, angle, targetFired, parent):
+		super().__init__(
+			sprite='body',
+			size=0.33,
+			X=position[0],
+			Y=position[1],
+			Angle=angle,
+			parent=parent,
+			relPosition=True)
+		self.weapon1 = self.create(Weapon1, targetFired=targetFired)
+		self.head = self.create(Head)
+		self.username = username
 
 class Weapon1(Object):
 	def __init__(self, targetFired, parent):
@@ -110,8 +153,8 @@ class Weapon1(Object):
 			Y=0,
 			relPosition=True,
 			relAngle=True)
-		self.leftarm = self.create(Weapon1Arm, side='armleft')
-		self.rightarm = self.create(Weapon1Arm, side='armright')
+		self.leftarm = self.create(Weapon1Arm, side='armright')
+		self.rightarm = self.create(Weapon1Arm, side='armleft')
 		self.weaponClk=0
 		self.targetFired=targetFired
 		self.fired=targetFired
@@ -120,7 +163,7 @@ class Weapon1(Object):
 		if self.parent.__class__.__name__ != 'Puppet':
 			self.targetFired += 1
 		self.weaponClk = not self.weaponClk
-		self.subObjects[self.weaponClk].fire()
+		self.children[self.weaponClk].fire()
 
 	def run(self):
 		if self.parent.__class__.__name__ == 'Puppet':
@@ -130,7 +173,7 @@ class Weapon1(Object):
 
 class Weapon1Arm(Object):
 	def __init__(self, side, parent):
-		self.side=[-1, 1][side=='armleft']
+		self.side=[-1, 1][side=='armright']
 		super().__init__(
 			sprite=side,
 			size=0.4,
@@ -147,13 +190,13 @@ class Weapon1Arm(Object):
 	def run(self):
 		self.shootAngle /= 1.2
 		if self.parent.parent.__class__.__name__ == 'Player':
-			self.pointPos=[[self.X, self.Y][i] - [100, 100][i] for i in range(2)]
-			try:self.angle=posToAng(self.pointPos[0], self.pointPos[1])+self.shootAngle+self.side*-3
+			self.pointPos=[[self.center_x, self.center_y][i] - self.parent.parent.parent.mousePos[i] for i in range(2)]
+			try: self.Angle=posToAng(self.pointPos[0], self.pointPos[1])+self.shootAngle+self.side*3
 			except ZeroDivisionError:
 				pass
-			self.realAngle = self.angle
 		else:
-			self.realAngle = self.angle + self.shootAngle
+			self.Angle += 1
+			#self.angle = self.Angle + self.shootAngle
 
 class Head(Object):
 	def __init__(self, parent):
@@ -168,15 +211,14 @@ class Muzzleflash(Object):
 	def __init__(self, parent):
 		super().__init__(
 			sprite='flash',
-			size=0.4,
+			size=1.2,
 			parent=parent,
-			relPosition=True,
-			X=80,
-			Y=-10*parent.side)
-		self.angle=self.parent.angle
+			X=parent.center_x+80,
+			Y=parent.center_y-10*parent.side)
+		self.Angle=self.parent.Angle
 		self.destructTimer=0
 
 	def run(self):
 		self.destructTimer+=1
-		if self.destructTimer==3:
+		if self.destructTimer==4:
 			self.delete()

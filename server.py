@@ -103,7 +103,7 @@ def hitReg(player_ref):
 		# SAME MASSIVE BODGE!!!!!! FIX CLIENT COORDINATES
 		target_pos = (target.position[0],target.position[1]*-1)
 
-		if norm(array(target_pos) - array(player_pos)).tolist() < bullet_travel and if sin(radians(player_angle+90))*(player_pos[2]-target_pos[2]) >= cos(radians(player_angle+90))*(player_pos[1]-target_pos[1]) and target.username in list(address_id.values()) and target != player_ref:
+		if norm(array(target_pos) - array(player_pos)).tolist() < bullet_travel and sin(radians(player_angle+90))*(player_pos[2]-target_pos[2]) >= cos(radians(player_angle+90))*(player_pos[1]-target_pos[1]) and target.username in list(address_id.values()) and target != player_ref:
 			line_seg = (array(player_pos), array((player_pos[0]+bullet_travel*sin(radians(player_angle)), player_pos[1]+bullet_travel*cos(radians(player_angle)))))
 			if dist(*line_seg, array(target_pos)) < player_hitbox:
 				print(player_ref.username + ' hit '+ target.username)
