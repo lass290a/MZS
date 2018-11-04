@@ -5,9 +5,10 @@ from math import sin, cos, tan, degrees, radians, sqrt
 from multiplayer import ThreadedServer
 
 class Object:
-	def __init__(self, username=None, type=None, parent=None, position=(0,0), angle=0, targetFired=0):
+	def __init__(self, username=None, type=None, parent=None, position=(0,0), angle=0, targetFired=0, health=100):
 		self.username = username
 		self.position = position
+		self.health = 100
 		self.angle = angle
 		self.type = type
 		self.targetFired = targetFired
@@ -75,6 +76,7 @@ class Player(Object):
 			type='Player',
 			position=(0,0),
 			angle=0,
+			health=100,
 			targetFired=0,
 			parent=parent)
 
@@ -98,10 +100,10 @@ def hitReg(player_ref):
 	player_objs = database.find(type='Player')
 	for target in player_objs:
 		target_pos = target.position
-		if norm(array(target_pos) - array(player_pos)).tolist() < bullet_travel and sin(radians(player_angle+90))*(player_pos[1]-target_pos[1]) >= cos(radians(player_angle+90))*(player_pos[0]-target_pos[0]) and target.username in list(address_id.values()) and target != player_ref:
+		if norm(array(target_pos) - array(player_pos)).tolist() < bullet_travel and sin(radians(player_angle-90))*(player_pos[1]-target_pos[1]) >= cos(radians(player_angle-90))*(player_pos[0]-target_pos[0]) and target.username in list(address_id.values()) and target != player_ref:
 			line_seg = (array(player_pos), array((player_pos[0]+bullet_travel*sin(radians(player_angle)), player_pos[1]+bullet_travel*cos(radians(player_angle)))))
 			if dist(*line_seg, array(target_pos)) < player_hitbox:
-				print(player_ref.username + ' hit '+ target.username)
+				target.health -= 10
 
 address_id = {}
 
@@ -150,11 +152,13 @@ def event_handler(raw_json):
 		else:
 			setattr(player_ref, event, event_data['player_data'][event])
 
-	send_data = {'player_data':{}}
+	send_data = {'player_data':{}, 'self_data':{}}
+
 	for user in list(address_id.values()):
 		if user != player_ref.username:
 			temp_user = database.find(username=user)
 			send_data['player_data'][user] = {'position':temp_user.position, 'angle':temp_user.angle, 'targetFired':temp_user.targetFired}
+		send_data['self_data']['health'] = player_ref.health
 	return str(send_data)
 
 
