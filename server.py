@@ -92,17 +92,12 @@ def hitReg(player_ref):
 	bullet_travel = 1000
 	player_hitbox = 70
 
-	# MASSIVE BODGE!!!! CLIENT SIDE COORDINATE SYSTEM SHOULD BE FIXED INSTEAD!!!!
-	player_pos = (player_ref.position[0],player_ref.position[1]*-1)
+	player_pos = player_ref.position
 	player_angle = (player_ref.angle-450)*-1
 
-	
 	player_objs = database.find(type='Player')
 	for target in player_objs:
-		
-		# SAME MASSIVE BODGE!!!!!! FIX CLIENT COORDINATES
-		target_pos = (target.position[0],target.position[1]*-1)
-
+		target_pos = target.position
 		if norm(array(target_pos) - array(player_pos)).tolist() < bullet_travel and sin(radians(player_angle+90))*(player_pos[1]-target_pos[1]) >= cos(radians(player_angle+90))*(player_pos[0]-target_pos[0]) and target.username in list(address_id.values()) and target != player_ref:
 			line_seg = (array(player_pos), array((player_pos[0]+bullet_travel*sin(radians(player_angle)), player_pos[1]+bullet_travel*cos(radians(player_angle)))))
 			if dist(*line_seg, array(target_pos)) < player_hitbox:
