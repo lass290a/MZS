@@ -119,6 +119,7 @@ def connectionSuccess():
 				game.world.children[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
 				game.world.children[-1].weapon1.targetFired = recv['player_data'][puppet]['targetFired']
 				sleep(1/65-(datetime.now()-timer).seconds+(datetime.now()-timer).microseconds/1000000)
+			player.health = recv['self_data']['health']
 
 	threading.Thread(target=sendData).start()
 

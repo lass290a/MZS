@@ -182,7 +182,7 @@ class DebugMenu(Object):
 			size=10,)
 
 	def run(self):
-		self.window.text.string = 'X: '+str(round(self.game.world.player.X, 2))+'\nY: '+str(round(self.game.world.player.Y, 2))
+		self.window.text.string = 'X: '+str(round(self.game.world.player.X, 2))+'\nY: '+str(round(self.game.world.player.Y, 2))+'\nAngle: '+str(round(self.game.world.player.Angle, 2))+'\nHealth: '+str(self.game.world.player.health)+"/100"
 
 class Player(Object):
 	def __init__(self, x, y, parent):
@@ -203,6 +203,7 @@ class Player(Object):
 		self.mousePos = (0, 0)
 		self.weapon1 = self.create(Weapon1, targetFired=0)
 		self.head = self.create(Head)
+		self.health = 100
 
 	def run(self):
 		if 'a' in self.parent.heldKeys:
