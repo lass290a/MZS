@@ -185,7 +185,7 @@ class Game(Object):
 	def __init__(self):
 		super().__init__()
 		self.world = self.create(World)
-		#self.overlay = self.create(Overlay)
+		self.overlay = self.create(Overlay)
 class Overlay(Object):
 	def __init__(self, parent):
 		super().__init__(

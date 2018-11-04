@@ -9,9 +9,11 @@ def posToAng(x, y):
 	return 180+(atan((y)/(x))*57.2957795+180*((x) < 0))
 
 class Object(arcade.Sprite):
-	def __init__(self, sprite='nosprite', size=0.1, parent=None, X=0, Y=0, Angle=0, relPosition=False, relAngle=False):
+	def __init__(self, sprite='nosprite', size=0.1, width=0, height=0, parent=None, X=0, Y=0, Angle=0, relPosition=False, relAngle=False):
 		super().__init__(sprites[sprite], size)
 		self.children, self.parent = [], parent
+		if width: self.width = width
+		if height: self.height = height
 		self.relPosition, self.relAngle = relPosition, relAngle
 		self.X, self.Y, self.Angle = X, Y, Angle
 
@@ -70,10 +72,9 @@ class World(Object):
 		#self.create(Puppet, username='MONkEYY', position=(100, 100), angle=45, targetFired=0)
 
 	def start_focus(self):
-		print('start_focus')
+		pass
 
 	def stop_focus(self):
-		print('stop_focus')
 		self.heldKeys = []
 
 	def on_mouse_motion(self, x, y, dx, dy):
@@ -92,6 +93,55 @@ class World(Object):
 	def run(self):
 		global screenWidth, screenHeight
 		self.X, self.Y=-self.player.X + self.screenWidth/2, -self.player.Y + self.screenHeight/2
+
+class Overlay(Object):
+	def __init__(self):
+		super().__init__()
+		self.create(Window, width=200, height=160, dragable=True, top=True)
+
+class WindowTop(Object):
+	def __init__(self, dragable, parent):
+		super().__init__(
+			sprite='windowtop',
+			size=2,
+			parent=parent,
+			X=0,
+			Y=parent.height/2-25/2,
+			relPosition=True,
+			width=parent.width,
+			height=25)
+		self.dragable=dragable
+		self.dragging=False
+		self.dragOffsetX = 0
+		self.dragOffsetY = 0
+
+	def on_mouse_motion(self, x, y, dx, dy):
+		if self.dragable and self.dragging == True:
+			self.parent.X = x+self.dragOffsetX
+			self.parent.Y = y+self.dragOffsetY
+
+	def on_mouse_press(self, x, y, button, modifiers):
+		if self.dragable:
+			self.dragging = True
+			self.dragOffsetX = self.parent.X-x
+			self.dragOffsetY = self.parent.Y-y
+
+	def on_mouse_release(self, x, y, button, modifiers):
+		if self.dragable and self.dragging == True:
+			self.dragging = False
+		
+
+class Window(Object):
+	def __init__(self, width, height, parent, top=False, dragable=False):
+		super().__init__(
+			sprite='windowbody',
+			size=2,
+			parent=parent,
+			X=800,
+			Y=500,
+			width=width,
+			height=height)
+		self.windowTop = self.create(WindowTop, dragable=dragable)
 
 
 class Player(Object):

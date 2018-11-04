@@ -5,27 +5,31 @@ import threading
 from datetime import datetime
 
 #serverAddress = ('localhost', 4422); user = ('AlexBMJ', '4312')
-#serverAddress = ('80.198.253.146', 4422); user = ('meatface', '1234')
-serverAddress = ('localhost', 4422); user = ('meatface', '1234')
+serverAddress = ('80.198.253.146', 4422); user = ('meatface', '1234')
+#serverAddress = ('localhost', 4422); user = ('meatface', '1234')
 
 versionText = 'Zython pre-beta (arcade)'
-screenWidth, screenHeight = 1600, 900
+screenWidth, screenHeight = (1600//5)*4, (900//5)*4
 
 class Game(arcade.Window):
-	def focus(self, object):
-		if 'stop_focus' in dir(object):
-			object.stop_focus()
+	def focus(self, object, x=0, y=0, button=0, modifiers=0):
+		if 'stop_focus' in dir(self.focused):
+			self.focused.stop_focus()
 		self.focused = object
-		if 'start_focus' in dir(object):
-			object.start_focus()
+		self.focusedTriggers = []
 		for trigger in ['on_mouse_motion', 'on_mouse_press', 'on_mouse_release', 'on_key_press', 'on_key_release']:
 			if trigger in dir(self.focused):
 				self.focusedTriggers.append(trigger)
+		if 'start_focus' in dir(object):
+			object.start_focus()
+		if 'on_mouse_press' in dir(object):
+			object.on_mouse_press(x, y, button, modifiers)
 
 	def __init__(self, width, height):
 		super().__init__(width, height)
-		arcade.set_background_color(arcade.color.BLACK)
+		arcade.set_background_color(arcade.color.ASH_GREY)
 		self.world = World()
+		self.overlay = Overlay()
 		self.world.screenWidth, self.world.screenHeight = screenWidth, screenHeight
 		self.focused = None
 		self.focusedTriggers = []
@@ -38,12 +42,27 @@ class Game(arcade.Window):
 	def on_mouse_press(self, x, y, button, modifiers):
 		if 'on_mouse_press' in self.focusedTriggers:
 			self.focused.on_mouse_press(x, y, button, modifiers)
+		# scan for focused objects in 'overlay()'
+		self.tempFocus = self.world
+		def is_pressed(object):
+			in_x = x > object.center_x-object.width/2 and x < object.center_x+object.width/2
+			in_y = y > object.center_y-object.height/2 and y < object.center_y+object.height/2
+			has_triggers = [i for i in ['on_mouse_motion', 'on_mouse_press', 'on_mouse_release', 'on_key_press', 'on_key_release'] if i in dir(object)]!=[]
+			if in_x and in_y and has_triggers:
+				self.tempFocus = object
+			for obj in object.children:
+				is_pressed(obj)
+		is_pressed(self.overlay)
+		if self.focused != self.tempFocus:
+			self.focus(self.tempFocus, x, y, button, modifiers)
 
 	def on_mouse_release(self, x, y, button, modifiers):
 		if 'on_mouse_release' in self.focusedTriggers:
 			self.focused.on_mouse_release(x, y, button, modifiers)
 
 	def on_key_press(self, key, modifiers):
+		if key == 65307:
+			arcade.window_commands.close_window()
 		if 'on_key_press' in self.focusedTriggers:
 			self.focused.on_key_press(key, modifiers)
 
@@ -61,6 +80,15 @@ class Game(arcade.Window):
 			for obj in object.children:
 				render(obj)
 		render(self.world)
+		render(self.overlay)
+		arcade.draw_text(
+			"Here's an incredible window, my dudes",
+			self.world.mousePos[0],
+			self.world.mousePos[1],
+			arcade.color.BLACK,
+			14,
+			anchor_y='top',
+			font_name='Franklin Gothic Medium Cond')
 
 game = Game(screenWidth, screenHeight)
 mousePos = ()
@@ -81,7 +109,6 @@ def connectionSuccess():
 		newPuppetList = sorted(recv['player_data'].keys())
 		disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
 		joinedList = list(set(newPuppetList)-set(oldPuppetList))
-		
 		for puppet in game.world.find('Puppet'):
 			if puppet in disconnectedList:
 				puppet.delete()
