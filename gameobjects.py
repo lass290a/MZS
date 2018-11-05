@@ -116,7 +116,7 @@ class Overlay(Object):
 	
 	def run(self):
 		self.debugWindow.windowBody.text.string = ('Position:  ('+str(round(self.game.world.player.X, 2))+', '+str(round(self.game.world.player.Y, 2))+')\n'+
-				'Angle: '+str(round(self.game.world.player.Angle%360))+' Degrees\nServer: '+self.game.overlay.debugWindow.windowBody.text.connectedText)
+				'Angle: '+str(round(self.game.world.player.Angle%360))+' Degrees\nServer status: '+self.game.overlay.debugWindow.windowBody.text.connectedText)
 
 class Text(Object):
 	def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift'):
@@ -184,10 +184,6 @@ class WindowBody(Object):
 
 	def start_focus(self):
 		pass
-
-class Button(Object):
-	def __init__(self, X, Y, parent, text, size, width, height, callback, font_name='Bahnschrift'):
-		super().__init__()
 
 class Player(Object):
 	def __init__(self, x, y, parent):
