@@ -79,7 +79,8 @@ class Game(arcade.Window):
 				object.run()
 			if 'render' in dir(object):
 				object.render()
-				arcade.draw_text('+', object.center_x-6, object.center_y+3, (0, 0, 0), 18, anchor_y='center')
+				#Display Sprite center
+				#arcade.draw_text('+', object.center_x-6, object.center_y+3, (0, 0, 0), 18, anchor_y='center')
 
 			for obj in object.children:
 				render(obj)
@@ -90,7 +91,7 @@ game = Game(screenWidth, screenHeight, True)
 mousePos = ()
 
 def connectionSuccess():
-	print('connected to server')
+	game.overlay.debugWindow.windowBody.text.connectedText = serverAddress[0]+':'+serverAddress[1]
 	global connecting
 	connecting = False
 	player = game.world.player
@@ -125,7 +126,7 @@ def connectionSuccess():
 	threading.Thread(target=sendData).start()
 
 def connectionFailed(a):
-	print('Failed!', a)
+	game.overlay.debugWindow.windowBody.text.connectedText = 'Not connected'
 	global connecting
 	connecting = False
 

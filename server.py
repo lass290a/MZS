@@ -1,7 +1,6 @@
 from numpy import arccos, array, dot, pi, cross
 from numpy.linalg import det, norm
 from math import sin, cos, tan, degrees, radians, sqrt
-
 from multiplayer import ThreadedServer
 
 class Object:

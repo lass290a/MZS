@@ -110,9 +110,14 @@ class Overlay(Object):
 	def __init__(self, parent):
 		super().__init__(parent=parent)
 
-		self.window = self.create(Window, windowTitle='Debug Menu', width=300, height=250, X=25, Y=self.game.world.screenHeight-25)
-		self.window.windowBody.create(Text, string='WD...IIIiiiujdcDWWWWWWW', X=8, Y=-8, size=10)
+		self.debugWindow = self.create(Window, windowTitle='Debug Menu', width=200, height=80, X=25, Y=self.game.world.screenHeight-25)
+		self.debugWindow.windowBody.text = self.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
+		self.debugWindow.windowBody.text.connectedText = ''
 	
+	def run(self):
+		self.debugWindow.windowBody.text.string = ('Position:  ('+str(round(self.game.world.player.X, 2))+', '+str(round(self.game.world.player.Y, 2))+')\n'+
+				'Angle: '+str(round(self.game.world.player.Angle%360))+' Degrees\nServer: '+self.game.overlay.debugWindow.windowBody.text.connectedText)
+
 class Text(Object):
 	def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift'):
 		super().__init__(
@@ -144,7 +149,7 @@ class Window(Object):
 		self.dragging=False
 		self.dragOffsetX = 0
 		self.dragOffsetY = 0
-		self.windowBody = self.create(WindowBody, width=width, height=width)
+		self.windowBody = self.create(WindowBody, width=width, height=height)
 		self.windowTitle = self.create(Text, string=windowTitle, X=6, Y=-6, size=12)
 
 	def start_focus(self):
