@@ -19,7 +19,7 @@ class Game(arcade.Window):
 			self.focused.stop_focus()
 		self.focused = object
 		self.focusedTriggers = []
-		for trigger in ['on_mouse_motion', 'on_mouse_press', 'on_mouse_release', 'on_key_press', 'on_key_release']:
+		for trigger in ['on_mouse_motion', 'on_mouse_press', 'on_mouse_release', 'on_key_press', 'on_key_release', 'start_focus', 'stop_focus']:
 			if trigger in dir(self.focused):
 				self.focusedTriggers.append(trigger)
 		if 'start_focus' in dir(object):
@@ -43,14 +43,13 @@ class Game(arcade.Window):
 			self.focused.on_mouse_motion(x, y, dx, dy)
 
 	def on_mouse_press(self, x, y, button, modifiers):
-		if 'on_mouse_press' in self.focusedTriggers:
-			self.focused.on_mouse_press(x, y, button, modifiers)
 		# scan for focused objects in 'overlay()'
+		print(x, y)
 		self.tempFocus = self.world
 		def is_pressed(object):
-			in_x = x > object.center_x-object.width/2 and x < object.center_x+object.width/2
-			in_y = y > object.center_y-object.height/2 and y < object.center_y+object.height/2
-			has_triggers = [i for i in ['on_mouse_motion', 'on_mouse_press', 'on_mouse_release', 'on_key_press', 'on_key_release'] if i in dir(object)]!=[]
+			in_x = x > object.center_x and x < object.center_x+object.width
+			in_y = y < object.center_y and y > object.center_y-object.height
+			has_triggers = [i for i in ['on_mouse_motion', 'on_mouse_press', 'on_mouse_release', 'on_key_press', 'on_key_release', 'start_focus', 'stop_focus'] if i in dir(object)]!=[]
 			if in_x and in_y and has_triggers:
 				self.tempFocus = object
 			for obj in object.children:
@@ -58,6 +57,8 @@ class Game(arcade.Window):
 		is_pressed(self.overlay)
 		if self.focused != self.tempFocus:
 			self.focus(self.tempFocus, x, y, button, modifiers)
+		elif 'on_mouse_press' in self.focusedTriggers:
+			self.focused.on_mouse_press(x, y, button, modifiers)
 
 	def on_mouse_release(self, x, y, button, modifiers):
 		if 'on_mouse_release' in self.focusedTriggers:
@@ -80,6 +81,8 @@ class Game(arcade.Window):
 				object.run()
 			if 'render' in dir(object):
 				object.render()
+				arcade.draw_text('+', object.center_x-6, object.center_y+3, (0, 0, 0), 18, anchor_y='center')
+
 			for obj in object.children:
 				render(obj)
 		render(self.world)

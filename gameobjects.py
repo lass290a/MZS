@@ -9,13 +9,16 @@ def posToAng(x, y):
 	return 180+(atan((y)/(x))*57.2957795+180*((x) < 0))
 
 class Object(arcade.Sprite):
-	def __init__(self, sprite='nosprite', size=0.1, width=0, height=0, parent=None, X=0, Y=0, Angle=0, relPosition=False, relAngle=False):
+	def __init__(self, sprite='nosprite', size=0.1, width=0, height=0, parent=None, anchor=False, X=0, Y=0, Angle=0, relPosition=False, relAngle=False):
 		super().__init__(sprites[sprite], size)
 		self.children, self.parent = [], parent
 		if width: self.width = width
 		if height: self.height = height
+		if anchor: self.offsetX, self.offsetY = self.width/2, -self.height/2
+		else: self.offsetX, self.offsetY = 0, 0
 		self.relPosition, self.relAngle = relPosition, relAngle
 		self.X, self.Y, self.Angle = X, Y, Angle
+
 
 		if self.parent != None:
 			self.game = self.parent
@@ -32,8 +35,8 @@ class Object(arcade.Sprite):
 			self.center_x=self.parent.center_x+cos(radians(self.parent.angle))*self.X+cos(radians(self.parent.angle+90))*self.Y
 			self.center_y=self.parent.center_y+sin(radians(self.parent.angle))*self.X+sin(radians(self.parent.angle+90))*self.Y
 		def renderRelPositionFalse():
-			self.center_x=self.X
-			self.center_y=self.Y
+			self.center_x=self.X# - self.offsetX
+			self.center_y=self.Y# - self.offsetY
 		self.renderPosition = [renderRelPositionFalse, renderRelPositionTrue][relPosition]
 
 	def create(self, object, **parameters):
@@ -63,6 +66,8 @@ class Object(arcade.Sprite):
 		self.renderAngle()
 		self.renderPosition()
 		self.draw()
+		self.center_x-=self.offsetX
+		self.center_y-=self.offsetY
 
 class World(Object):
 	def __init__(self, parent):
@@ -102,10 +107,12 @@ class World(Object):
 class Overlay(Object):
 	def __init__(self, parent):
 		super().__init__(parent=parent)
-		self.create(DebugMenu)
-		
+
+		self.window = self.create(Window, windowTitle='Debug Menu', width=150, height=200, X=30, Y=695)
+		self.window.windowBody.create(Text, string='WD...IIIiiiujdcDWWWWWWW', X=8, Y=-8, size=10)
+	
 class Text(Object):
-	def __init__(self, string, color, X, Y, size, parent, font_name='Bahnschrift'):
+	def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift'):
 		super().__init__(
 			parent=parent,
 			X=X,
@@ -121,68 +128,55 @@ class Text(Object):
 			arcade.draw_text(self.string, self.center_x, self.center_y, self.color, self.size, anchor_y='top', font_name=self.font_name)
 		self.render = render
 
-class WindowTop(Object):
-	def __init__(self, dragable, parent):
+class Window(Object):
+	def __init__(self, parent, windowTitle, width, height, X, Y):
 		super().__init__(
 			sprite='windowtop',
-			size=2,
-			parent=parent,
-			X=0,
-			Y=parent.height/2+25/2,
-			relPosition=True,
-			width=parent.width,
-			height=25)
-		self.dragable=dragable
-		self.dragging=False
-		self.dragOffsetX = 0
-		self.dragOffsetY = 0
-
-	def on_mouse_motion(self, x, y, dx, dy):
-		if self.dragable and self.dragging == True:
-			self.parent.X = x+self.dragOffsetX
-			self.parent.Y = y+self.dragOffsetY
-
-	def on_mouse_press(self, x, y, button, modifiers):
-		if self.dragable:
-			self.dragging = True
-			self.dragOffsetX = self.parent.X-x
-			self.dragOffsetY = self.parent.Y-y
-
-	def on_mouse_release(self, x, y, button, modifiers):
-		if self.dragable and self.dragging == True:
-			self.dragging = False		
-
-class Window(Object):
-	def __init__(self, width, height, parent, top=False, dragable=False, X=0, Y=0):
-		super().__init__(
-			sprite='windowbody',
 			size=2,
 			parent=parent,
 			X=X,
 			Y=Y,
 			width=width,
-			height=height)
-		self.windowTop = self.create(WindowTop, dragable=dragable)
+			height=25,
+			anchor=True)
+		self.dragging=False
+		self.dragOffsetX = 0
+		self.dragOffsetY = 0
+		self.windowBody = self.create(WindowBody, width=width, height=width)
+		self.windowTitle = self.create(Text, string=windowTitle, X=8, Y=-8, size=10)
 
-class DebugMenu(Object):
-	def __init__(self, parent):
-		super().__init__(parent=parent)
-		self.window = self.create(Window, width=200, height=160, top=True, dragable=True, X=115, Y=self.game.world.screenHeight-125)
-		self.window.windowTop.topText = self.window.windowTop.create(Text,
-			string='Debug menu',
-			color=(255,255,255),
-			X=-self.window.windowTop.width/2+6,
-			Y=self.window.windowTop.height/2-6,
-			size=11,)
-		self.window.text = self.window.create(Text,
-			string='',
-			color=(255,255,255),
-			X=-self.window.width/2+5,
-			Y=self.window.height/2-5,
-			size=10,)
+	def start_focus(self):
+		print(self.center_x, self.center_y, self.windowBody.center_x, self.windowBody.center_y)
 
-	def run(self):
-		self.window.text.string = 'X: '+str(round(self.game.world.player.X, 2))+'\nY: '+str(round(self.game.world.player.Y, 2))+'\nAngle: '+str(round(self.game.world.player.Angle, 2))+'\nHealth: '+str(self.game.world.player.health)+"/100"
+	def on_mouse_motion(self, x, y, dx, dy):
+		if self.dragging == True:
+			self.X = x+self.dragOffsetX
+			self.Y = y+self.dragOffsetY
+
+	def on_mouse_press(self, x, y, button, modifiers):
+		self.dragging = True
+		self.dragOffsetX = self.X-x
+		self.dragOffsetY = self.Y-y
+
+	def on_mouse_release(self, x, y, button, modifiers):
+		if self.dragging == True:
+			self.dragging = False		
+
+class WindowBody(Object):
+	def __init__(self, width, height, parent):
+		super().__init__(
+			sprite='windowbody',
+			size=2,
+			parent=parent,
+			X=width/2,
+			Y=-(height/2+25),
+			relPosition=True,
+			width=width,
+			height=height,
+			anchor=True)
+
+	def start_focus(self):
+		pass
 
 class Player(Object):
 	def __init__(self, x, y, parent):
