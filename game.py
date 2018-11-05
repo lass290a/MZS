@@ -27,8 +27,8 @@ class Game(arcade.Window):
 		if 'on_mouse_press' in dir(object):
 			object.on_mouse_press(x, y, button, modifiers)
 
-	def __init__(self, width, height, fullscreen=False):
-		super().__init__(width, height)
+	def __init__(self, width, height, full_screen=False):
+		super().__init__(width, height, fullscreen=full_screen)
 		arcade.set_background_color(arcade.color.ASH_GREY)
 		self.parent = None
 		self.world = World(self)
