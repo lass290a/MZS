@@ -65,6 +65,8 @@ class Object(arcade.Sprite):
 	def render(self):
 		self.renderAngle()
 		self.renderPosition()
+		self.center_x+=self.offsetX
+		self.center_y+=self.offsetY
 		self.draw()
 		self.center_x-=self.offsetX
 		self.center_y-=self.offsetY
@@ -108,7 +110,7 @@ class Overlay(Object):
 	def __init__(self, parent):
 		super().__init__(parent=parent)
 
-		self.window = self.create(Window, windowTitle='Debug Menu', width=150, height=200, X=30, Y=695)
+		self.window = self.create(Window, windowTitle='Debug Menu', width=300, height=250, X=25, Y=self.game.world.screenHeight-25)
 		self.window.windowBody.create(Text, string='WD...IIIiiiujdcDWWWWWWW', X=8, Y=-8, size=10)
 	
 class Text(Object):
@@ -143,7 +145,7 @@ class Window(Object):
 		self.dragOffsetX = 0
 		self.dragOffsetY = 0
 		self.windowBody = self.create(WindowBody, width=width, height=width)
-		self.windowTitle = self.create(Text, string=windowTitle, X=8, Y=-8, size=10)
+		self.windowTitle = self.create(Text, string=windowTitle, X=6, Y=-6, size=12)
 
 	def start_focus(self):
 		print(self.center_x, self.center_y, self.windowBody.center_x, self.windowBody.center_y)
@@ -168,8 +170,8 @@ class WindowBody(Object):
 			sprite='windowbody',
 			size=2,
 			parent=parent,
-			X=width/2,
-			Y=-(height/2+25),
+			X=0,
+			Y=-25,
 			relPosition=True,
 			width=width,
 			height=height,
@@ -177,6 +179,10 @@ class WindowBody(Object):
 
 	def start_focus(self):
 		pass
+
+class Button(Object):
+	def __init__(self, X, Y, parent, text, size, width, height, callback, font_name='Bahnschrift'):
+		super().__init__()
 
 class Player(Object):
 	def __init__(self, x, y, parent):
@@ -305,5 +311,5 @@ class Muzzleflash(Object):
 
 	def run(self):
 		self.destructTimer+=1
-		if self.destructTimer==4:
+		if self.destructTimer==3:
 			self.delete()

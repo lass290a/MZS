@@ -43,8 +43,6 @@ class Game(arcade.Window):
 			self.focused.on_mouse_motion(x, y, dx, dy)
 
 	def on_mouse_press(self, x, y, button, modifiers):
-		# scan for focused objects in 'overlay()'
-		print(x, y)
 		self.tempFocus = self.world
 		def is_pressed(object):
 			in_x = x > object.center_x and x < object.center_x+object.width
