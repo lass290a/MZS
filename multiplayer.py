@@ -28,7 +28,7 @@ class ThreadedServer:
 				if rawdata.startswith('{') and rawdata.endswith('}') and ';' not in rawdata:
 					data = eval(rawdata)
 				else:
-					print('Invalid Data Format')
+					#print('Invalid Data Format')
 					self.events({f'{address[0]}:{address[1]}':{'connection':'disconnect'}})
 					client.close()
 					return False

@@ -80,7 +80,7 @@ if 'world objects':
 				X=0,
 				Y=0,
 				parent=parent)
-			self.player = self.create(Player, x=100, y=100)
+			self.player = self.create(Player, x=0, y=0)
 			self.mousePos = (0, 0)
 			self.heldKeys=[]
 

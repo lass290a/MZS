@@ -119,6 +119,7 @@ def event_handler(raw_json):
 	if 'connection' in list(event_data.keys()):
 		if event_data['connection'] == 'disconnect':
 			try:
+				print(f'>>> User {address_id[address]}@{address} Disconnected')
 				del address_id[address]
 			except:
 				pass
@@ -126,24 +127,26 @@ def event_handler(raw_json):
 
 	if 'start_connection' in list(event_data.keys()):
 		if event_data['start_connection']['username'] in list(address_id.values()):
-			for user in list(address_id.values()):
-				if event_data['start_connection']['username'] == user:
-					player_ref = database.find(username=user)
-					return str({'start_connection':{'position':player_ref.position}})
-				else:
-					return str({'connection_denied':'wrong_password'})
+			print(f'>>> User {address_id[address]}@{address} already online')
+			return False
+		elif database.find(username=event_data['start_connection']['username']):
+			address_id[address] = event_data['start_connection']['username']
+			player_ref = database.find(username=event_data['start_connection']['username'])
+			print(f'>>> User {address_id[address]}@{address} joined')
+			return str({'start_connection':{'position':player_ref.position}})
+
 		else:
 			address_id[address] = event_data['start_connection']['username']
 			database.create(Player, {'username':event_data['start_connection']['username']})
 			player_ref = database.find(username=event_data['start_connection']['username'])
-			print('>>> New User Joined')
+			print(f'>>> New user {address_id[address]}@{address} created')
 			return str({'start_connection':{'position':player_ref.position}})
 	else:
 		for user_ip in address_id:
 			if address == user_ip:
 				player_ref = database.find(username=address_id[user_ip])
 			else:
-				print('>>> No matching User found')
+				print('>>> No matching user found')
 	for event in event_data['player_data']:
 		if event == 'targetFired':
 			while event_data['player_data'][event] > player_ref.targetFired:

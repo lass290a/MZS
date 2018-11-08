@@ -65,9 +65,16 @@ class Game(arcade.Window):
 
 	def on_key_press(self, key, modifiers):
 		if key == 65307:
+			global online
+			online = False
 			arcade.window_commands.close_window()
 		if 'on_key_press' in self.focusedTriggers:
 			self.focused.on_key_press(key, modifiers)
+
+	def on_close(self):
+		global online
+		online = False
+		arcade.window_commands.close_window()
 
 	def on_key_release(self, key, modifiers):
 		if 'on_key_release' in self.focusedTriggers:
@@ -97,7 +104,7 @@ def connectionSuccess():
 	recv = eval(server.sendData(str({'start_connection':{'username':user[0], 'password':user[1]}})))
 	player.x, player.y = recv['start_connection']['position']
 	def sendData():
-		while True:
+		while online:
 			timer = datetime.now()
 			recv = eval(server.sendData(str({'player_data':{'position':(round(player.X, 2), round(player.Y, 2)) , 'angle':round(player.Angle, 2), 'targetFired': player.weapon1.targetFired}})))
 			oldPuppetList = sorted([puppet.username for puppet in game.world.find("Puppet")])
@@ -121,6 +128,8 @@ def connectionSuccess():
 				sleep(1/65-(datetime.now()-timer).seconds+(datetime.now()-timer).microseconds/1000000)
 			player.health = recv['self_data']['health']
 
+	global online
+	online = True
 	threading.Thread(target=sendData).start()
 
 def connectionFailed(a):
