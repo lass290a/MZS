@@ -334,12 +334,12 @@ if 'overlay objects':
 			self.height = height
 			self.width = width
 			self.inputText = self.create(Text, string='', X=height*0.5*(1-0.5), Y=-height/2, size=height*0.5, anchor_x="left", anchor_y="center", color=(255, 255, 255), relPosition=True, font_name='Consolas')
+			self.cursorPosition = 0
+			self.cursorMaxPosition = 0
 
 		def start_focus(self):
 			self.cursorText = self.create(Text, string='', X=self.height*0.5*(1-0.5)-4, Y=-self.height/2, size=self.height*0.5, anchor_x="left", anchor_y="center", color=(255, 255, 255), relPosition=True, font_name='Consolas')
-			self.cursorText.cursorPosition = 0
-			self.cursorText.cursorMaxPosition = 0
-			self.cursorText.string = ' '*self.cursorText.cursorPosition+'|'
+			self.cursorText.string = ' '*self.cursorPosition+'|'
 			
 		def stop_focus(self):
 			self.cursorText.delete()
@@ -347,25 +347,25 @@ if 'overlay objects':
 		def on_key_press(self, key, modifiers):
 			#print(key, modifiers)
 			if key in [65509, 65289, 65513, 65507, 65514, 65383, 65508, 65361, 65364, 65362, 65363, 65505, 65367, 65366, 65293, 65365, 65360, 65288]:
-				if key == 65288 and self.cursorText.cursorPosition > 0:
-					self.inputText.string = self.inputText.string[:self.cursorText.cursorPosition-1]+self.inputText.string[self.cursorText.cursorPosition:]
-					self.cursorText.cursorMaxPosition -= 1
-					self.cursorText.cursorPosition -= 1
-					self.cursorText.string = ' '*self.cursorText.cursorPosition+'|'
+				if key == 65288 and self.cursorPosition > 0:
+					self.inputText.string = self.inputText.string[:self.cursorPosition-1]+self.inputText.string[self.cursorPosition:]
+					self.cursorMaxPosition -= 1
+					self.cursorPosition -= 1
+					self.cursorText.string = ' '*self.cursorPosition+'|'
 				if key == 65293:
 					self.inputText.string = ''
-				if key == 65363 and self.cursorText.cursorPosition < self.cursorText.cursorMaxPosition:
-					self.cursorText.cursorPosition += 1
-					self.cursorText.string = ' '*self.cursorText.cursorPosition+'|'
-				if key == 65361 and self.cursorText.cursorPosition > 0:
-					self.cursorText.cursorPosition -= 1
-					self.cursorText.string = ' '*self.cursorText.cursorPosition+'|'
+				if key == 65363 and self.cursorPosition < self.cursorMaxPosition:
+					self.cursorPosition += 1
+					self.cursorText.string = ' '*self.cursorPosition+'|'
+				if key == 65361 and self.cursorPosition > 0:
+					self.cursorPosition -= 1
+					self.cursorText.string = ' '*self.cursorPosition+'|'
 			else:
 				try:
-					self.cursorText.cursorMaxPosition += 1
-					self.cursorText.cursorPosition += 1
-					self.inputText.string = self.inputText.string[:self.cursorText.cursorPosition]+(chr(key).upper() if modifiers else chr(key))+self.inputText.string[self.cursorText.cursorPosition:]
-					self.cursorText.string = ' '*self.cursorText.cursorPosition+'|'
+					self.cursorMaxPosition += 1
+					self.cursorPosition += 1
+					self.inputText.string = self.inputText.string[:self.cursorPosition]+(chr(key).upper() if modifiers else chr(key))+self.inputText.string[self.cursorPosition:]
+					self.cursorText.string = ' '*self.cursorPosition+'|'
 				except OverflowError:
 					pass
-			print(self.cursorText.cursorPosition, self.cursorText.cursorMaxPosition)
+			print(self.cursorPosition, self.cursorMaxPosition)
