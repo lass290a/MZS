@@ -35,8 +35,8 @@ class Object(arcade.Sprite):
 			self.center_x=self.parent.center_x+cos(radians(self.parent.angle))*self.X+cos(radians(self.parent.angle+90))*self.Y
 			self.center_y=self.parent.center_y+sin(radians(self.parent.angle))*self.X+sin(radians(self.parent.angle+90))*self.Y
 		def renderRelPositionFalse():
-			self.center_x=self.X# - self.offsetX
-			self.center_y=self.Y# - self.offsetY
+			self.center_x=self.X
+			self.center_y=self.Y
 		self.renderPosition = [renderRelPositionFalse, renderRelPositionTrue][relPosition]
 
 	def create(self, object, **parameters):
@@ -71,246 +71,256 @@ class Object(arcade.Sprite):
 		self.center_x-=self.offsetX
 		self.center_y-=self.offsetY
 
-class World(Object):
-	def __init__(self, parent):
-		super().__init__(
-			sprite='cross',
-			size=0.7,
-			X=0,
-			Y=0,
-			parent=parent)
-		self.player = self.create(Player, x=100, y=100)
-		self.mousePos = (0, 0)
-		self.heldKeys=[]
+if 'world objects':
+	class World(Object):
+		def __init__(self, parent):
+			super().__init__(
+				sprite='cross',
+				size=0.7,
+				X=0,
+				Y=0,
+				parent=parent)
+			self.player = self.create(Player, x=100, y=100)
+			self.mousePos = (0, 0)
+			self.heldKeys=[]
 
-	def start_focus(self):
-		pass
-
-	def stop_focus(self):
-		self.heldKeys = []
-
-	def on_mouse_motion(self, x, y, dx, dy):
-		self.mousePos = (x, y)
-
-	def on_mouse_press(self, x, y, button, modifiers):
-		if button == arcade.MOUSE_BUTTON_LEFT:
-			self.player.weapon1.fire()
-
-	def on_key_press(self, key, modifiers):
-		self.heldKeys.append(chr(key))
-
-	def on_key_release(self, key, modifiers):
-		del self.heldKeys[self.heldKeys.index(chr(key))]
-
-	def run(self):
-		global screenWidth, screenHeight
-		self.X, self.Y=-self.player.X + self.screenWidth/2, -self.player.Y + self.screenHeight/2
-
-class Overlay(Object):
-	def __init__(self, parent):
-		super().__init__(parent=parent)
-
-		self.debugWindow = self.create(Window, windowTitle='Debug Menu', width=200, height=80, X=25, Y=self.game.world.screenHeight-25)
-		self.debugWindow.windowBody.text = self.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
-		self.debugWindow.windowBody.text.connectedText = ''
-	
-	def run(self):
-		self.debugWindow.windowBody.text.string = ('Position:  ('+str(round(self.game.world.player.X, 2))+', '+str(round(self.game.world.player.Y, 2))+')\n'+
-				'Angle: '+str(round(self.game.world.player.Angle%360))+' Degrees\nServer status: '+self.game.overlay.debugWindow.windowBody.text.connectedText)
-
-class Text(Object):
-	def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift'):
-		super().__init__(
-			parent=parent,
-			X=X,
-			Y=Y,
-			relPosition=True)
-		self.string = string
-		self.color = color
-		self.size = size
-		self.font_name = font_name
-		def render():
-			self.center_x=self.parent.center_x+self.X
-			self.center_y=self.parent.center_y+self.Y
-			arcade.draw_text(self.string, self.center_x, self.center_y, self.color, self.size, anchor_y='top', font_name=self.font_name)
-		self.render = render
-
-class Window(Object):
-	def __init__(self, parent, windowTitle, width, height, X, Y):
-		super().__init__(
-			sprite='windowtop',
-			size=2,
-			parent=parent,
-			X=X,
-			Y=Y,
-			width=width,
-			height=25,
-			anchor=True)
-		self.dragging=False
-		self.dragOffsetX = 0
-		self.dragOffsetY = 0
-		self.windowBody = self.create(WindowBody, width=width, height=height)
-		self.windowTitle = self.create(Text, string=windowTitle, X=6, Y=-6, size=12)
-
-	def start_focus(self):
-		print(self.center_x, self.center_y, self.windowBody.center_x, self.windowBody.center_y)
-
-	def on_mouse_motion(self, x, y, dx, dy):
-		if self.dragging == True:
-			self.X = x+self.dragOffsetX
-			self.Y = y+self.dragOffsetY
-
-	def on_mouse_press(self, x, y, button, modifiers):
-		self.dragging = True
-		self.dragOffsetX = self.X-x
-		self.dragOffsetY = self.Y-y
-
-	def on_mouse_release(self, x, y, button, modifiers):
-		if self.dragging == True:
-			self.dragging = False		
-
-class WindowBody(Object):
-	def __init__(self, width, height, parent):
-		super().__init__(
-			sprite='windowbody',
-			size=2,
-			parent=parent,
-			X=0,
-			Y=-25,
-			relPosition=True,
-			width=width,
-			height=height,
-			anchor=True)
-
-	def start_focus(self):
-		pass
-
-class Player(Object):
-	def __init__(self, x, y, parent):
-		super().__init__(
-			sprite='body',
-			size=0.33,
-			X=x,
-			Y=y,
-			parent=parent,
-			relPosition=True)
-		self.vectorX=0
-		self.vectorY=0
-		self.pointX=0
-		self.pointY=0
-		self.deaccel=1.4
-		self.accel=2
-		self.pointPos = (0, 0)
-		self.mousePos = (0, 0)
-		self.weapon1 = self.create(Weapon1, targetFired=0)
-		self.head = self.create(Head)
-		self.health = 100
-
-	def run(self):
-		if 'a' in self.parent.heldKeys:
-			self.vectorX-=self.accel
-		if 'd' in self.parent.heldKeys:
-			self.vectorX+=self.accel
-		if 's' in self.parent.heldKeys:
-			self.vectorY-=self.accel
-		if 'w' in self.parent.heldKeys:
-			self.vectorY+=self.accel
-		
-		self.vectorX /=self.deaccel
-		self.vectorY /=self.deaccel
-		self.X+=self.vectorX
-		self.Y+=self.vectorY
-		self.pointPos=[[self.center_x, self.center_y][i] - self.parent.mousePos[i] for i in range(2)]
-		try:self.Angle = posToAng(self.pointPos[0], self.pointPos[1])
-		except ZeroDivisionError:
+		def start_focus(self):
 			pass
 
-class Puppet(Object):
-	def __init__(self, username, position, angle, targetFired, parent):
-		super().__init__(
-			sprite='body',
-			size=0.33,
-			X=position[0],
-			Y=position[1],
-			Angle=angle,
-			parent=parent,
-			relPosition=True)
-		self.weapon1 = self.create(Weapon1, targetFired=targetFired)
-		self.head = self.create(Head)
-		self.username = username
+		def stop_focus(self):
+			self.heldKeys = []
 
-class Weapon1(Object):
-	def __init__(self, targetFired, parent):
-		super().__init__(
-			parent=parent,
-			Y=0,
-			relPosition=True,
-			relAngle=True)
-		self.leftarm = self.create(Weapon1Arm, side='armright')
-		self.rightarm = self.create(Weapon1Arm, side='armleft')
-		self.weaponClk=0
-		self.targetFired=targetFired
-		self.fired=targetFired
+		def on_mouse_motion(self, x, y, dx, dy):
+			self.mousePos = (x, y)
 
-	def fire(self):
-		if self.parent.__class__.__name__ != 'Puppet':
-			self.targetFired += 1
-		self.weaponClk = not self.weaponClk
-		self.children[self.weaponClk].fire()
+		def on_mouse_press(self, x, y, button, modifiers):
+			if button == arcade.MOUSE_BUTTON_LEFT:
+				self.player.weapon1.fire()
 
-	def run(self):
-		if self.parent.__class__.__name__ == 'Puppet':
-			if self.fired < self.targetFired:
-				self.fired+=1
-				self.fire()
+		def on_key_press(self, key, modifiers):
+			self.heldKeys.append(chr(key))
 
-class Weapon1Arm(Object):
-	def __init__(self, side, parent):
-		self.side=[-1, 1][side=='armright']
-		super().__init__(
-			sprite=side,
-			size=0.4,
-			parent=parent,
-			relPosition=True,
-			X=0,
-			Y=30*self.side)
-		self.shootAngle=0
+		def on_key_release(self, key, modifiers):
+			del self.heldKeys[self.heldKeys.index(chr(key))]
 
-	def fire(self):
-		self.shootAngle+=uniform(15, 25)*[-1, 1][bool(getrandbits(1))]
-		self.create(Muzzleflash)
+		def run(self):
+			global screenWidth, screenHeight
+			self.X, self.Y=-self.player.X + self.screenWidth/2, -self.player.Y + self.screenHeight/2
 
-	def run(self):
-		self.shootAngle /= 1.2
-		if self.parent.parent.__class__.__name__ == 'Player':
-			self.pointPos=[[self.center_x, self.center_y][i] - self.parent.parent.parent.mousePos[i] for i in range(2)]
-			try: self.Angle=posToAng(self.pointPos[0], self.pointPos[1])+self.shootAngle+self.side*3
+	class Player(Object):
+		def __init__(self, x, y, parent):
+			super().__init__(
+				sprite='body',
+				size=0.33,
+				X=x,
+				Y=y,
+				parent=parent,
+				relPosition=True)
+			self.vectorX=0
+			self.vectorY=0
+			self.pointX=0
+			self.pointY=0
+			self.deaccel=1.4
+			self.accel=2
+			self.pointPos = (0, 0)
+			self.mousePos = (0, 0)
+			self.weapon1 = self.create(Weapon1, targetFired=0)
+			self.head = self.create(Head)
+			self.health = 100
+
+		def run(self):
+			if 'a' in self.parent.heldKeys:
+				self.vectorX-=self.accel
+			if 'd' in self.parent.heldKeys:
+				self.vectorX+=self.accel
+			if 's' in self.parent.heldKeys:
+				self.vectorY-=self.accel
+			if 'w' in self.parent.heldKeys:
+				self.vectorY+=self.accel
+			
+			self.vectorX /=self.deaccel
+			self.vectorY /=self.deaccel
+			self.X+=self.vectorX
+			self.Y+=self.vectorY
+			self.pointPos=[[self.center_x, self.center_y][i] - self.parent.mousePos[i] for i in range(2)]
+			try:self.Angle = posToAng(self.pointPos[0], self.pointPos[1])
 			except ZeroDivisionError:
 				pass
-		else:
-			self.angle = self.Angle + self.shootAngle
 
-class Head(Object):
-	def __init__(self, parent):
-		super().__init__(
-			parent=parent,
-			sprite='head',
-			size=0.4,
-			relPosition=True,
-			relAngle=True)
+	class Puppet(Object):
+		def __init__(self, username, position, angle, targetFired, parent):
+			super().__init__(
+				sprite='body',
+				size=0.33,
+				X=position[0],
+				Y=position[1],
+				Angle=angle,
+				parent=parent,
+				relPosition=True)
+			self.weapon1 = self.create(Weapon1, targetFired=targetFired)
+			self.head = self.create(Head)
+			self.username = username
 
-class Muzzleflash(Object):
-	def __init__(self, parent):
-		super().__init__(
-			sprite='flash',
-			size=1.2,
-			parent=parent,
-			X=parent.center_x+cos(radians(parent.angle))*85+cos(radians(parent.angle+90))*-10*parent.side,
-			Y=parent.center_y+sin(radians(parent.angle))*85+sin(radians(parent.angle+90))*-10*parent.side)
-		self.Angle=self.parent.Angle
-		self.destructTimer=0
+	class Weapon1(Object):
+		def __init__(self, targetFired, parent):
+			super().__init__(
+				parent=parent,
+				Y=0,
+				relPosition=True,
+				relAngle=True)
+			self.leftarm = self.create(Weapon1Arm, side='armright')
+			self.rightarm = self.create(Weapon1Arm, side='armleft')
+			self.weaponClk=0
+			self.targetFired=targetFired
+			self.fired=targetFired
 
-	def run(self):
-		self.destructTimer+=1
-		if self.destructTimer==3:
-			self.delete()
+		def fire(self):
+			if self.parent.__class__.__name__ != 'Puppet':
+				self.targetFired += 1
+			self.weaponClk = not self.weaponClk
+			self.children[self.weaponClk].fire()
+
+		def run(self):
+			if self.parent.__class__.__name__ == 'Puppet':
+				if self.fired < self.targetFired:
+					self.fired+=1
+					self.fire()
+
+	class Weapon1Arm(Object):
+		def __init__(self, side, parent):
+			self.side=[-1, 1][side=='armright']
+			super().__init__(
+				sprite=side,
+				size=0.4,
+				parent=parent,
+				relPosition=True,
+				X=0,
+				Y=30*self.side)
+			self.shootAngle=0
+
+		def fire(self):
+			self.shootAngle+=uniform(15, 25)*[-1, 1][bool(getrandbits(1))]
+			self.create(Muzzleflash)
+
+		def run(self):
+			self.shootAngle /= 1.2
+			if self.parent.parent.__class__.__name__ == 'Player':
+				self.pointPos=[[self.center_x, self.center_y][i] - self.parent.parent.parent.mousePos[i] for i in range(2)]
+				try: self.Angle=posToAng(self.pointPos[0], self.pointPos[1])+self.shootAngle+self.side*3
+				except ZeroDivisionError:
+					pass
+			else:
+				self.angle = self.Angle + self.shootAngle
+
+	class Head(Object):
+		def __init__(self, parent):
+			super().__init__(
+				parent=parent,
+				sprite='head',
+				size=0.4,
+				relPosition=True,
+				relAngle=True)
+
+	class Muzzleflash(Object):
+		def __init__(self, parent):
+			super().__init__(
+				sprite='flash',
+				size=1.2,
+				parent=parent,
+				X=parent.center_x+cos(radians(parent.angle))*85+cos(radians(parent.angle+90))*-10*parent.side,
+				Y=parent.center_y+sin(radians(parent.angle))*85+sin(radians(parent.angle+90))*-10*parent.side)
+			self.Angle=self.parent.Angle
+			self.destructTimer=0
+
+		def run(self):
+			self.destructTimer+=1
+			if self.destructTimer==3:
+				self.delete()
+
+if 'overlay objects':
+	class Overlay(Object):
+		def __init__(self, parent):
+			super().__init__(parent=parent)
+
+			self.debugWindow = self.create(Window, windowTitle='Debug Menu', width=200, height=80, X=25, Y=self.game.world.screenHeight-25)
+			self.debugWindow.windowBody.text = self.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
+			self.debugWindow.windowBody.text.connectedText = ''
+		
+		def run(self):
+			self.debugWindow.windowBody.text.string = ('Position:  ('+str(round(self.game.world.player.X, 2))+', '+str(round(self.game.world.player.Y, 2))+')\n'+
+					'Angle: '+str(round(self.game.world.player.Angle%360))+' Degrees\nServer status: '+self.game.overlay.debugWindow.windowBody.text.connectedText)
+
+	class Text(Object):
+		def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift'):
+			super().__init__(
+				parent=parent,
+				X=X,
+				Y=Y,
+				relPosition=True)
+			self.string = string
+			self.color = color
+			self.size = size
+			self.font_name = font_name
+			def render():
+				self.center_x=self.parent.center_x+self.X
+				self.center_y=self.parent.center_y+self.Y
+				arcade.draw_text(self.string, self.center_x, self.center_y, self.color, self.size, anchor_y='top', font_name=self.font_name)
+			self.render = render
+
+	class Window(Object):
+		def __init__(self, parent, windowTitle, width, height, X, Y):
+			super().__init__(
+				sprite='windowtop',
+				size=2,
+				parent=parent,
+				X=X,
+				Y=Y,
+				width=width,
+				height=25,
+				anchor=True)
+			self.dragging=False
+			self.dragOffsetX = 0
+			self.dragOffsetY = 0
+			self.windowBody = self.create(WindowBody, width=width, height=height)
+			self.windowTitle = self.create(Text, string=windowTitle, X=6, Y=-6, size=12)
+
+		def start_focus(self):
+			print(self.center_x, self.center_y, self.windowBody.center_x, self.windowBody.center_y)
+
+		def on_mouse_motion(self, x, y, dx, dy):
+			if self.dragging == True:
+				self.X = x+self.dragOffsetX
+				self.Y = y+self.dragOffsetY
+
+		def on_mouse_press(self, x, y, button, modifiers):
+			self.dragging = True
+			self.dragOffsetX = self.X-x
+			self.dragOffsetY = self.Y-y
+
+		def on_mouse_release(self, x, y, button, modifiers):
+			if self.dragging == True:
+				self.dragging = False		
+
+	class WindowBody(Object):
+		def __init__(self, width, height, parent):
+			super().__init__(
+				sprite='windowbody',
+				size=2,
+				parent=parent,
+				X=0,
+				Y=-25,
+				relPosition=True,
+				width=width,
+				height=height,
+				anchor=True)
+
+		def start_focus(self):
+			pass
+
+	class Entry(Object):
+		def __init__(self, X, Y, width, ):
+			super().__init__(
+				X=X,
+				Y=Y,
+				)
+
