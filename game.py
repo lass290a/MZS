@@ -37,6 +37,7 @@ class Game(arcade.Window):
 		self.focused = None
 		self.focusedTriggers = []
 		self.focus(self.world)
+		self.set_update_rate(1/30)
 
 	def on_mouse_motion(self, x, y, dx, dy):
 		if 'on_mouse_motion' in self.focusedTriggers:
