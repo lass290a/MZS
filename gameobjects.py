@@ -75,8 +75,8 @@ if 'world objects':
 	class World(Object):
 		def __init__(self, parent):
 			super().__init__(
-				sprite='cross',
-				size=0.7,
+				sprite='tet',
+				size=8,
 				X=0,
 				Y=0,
 				parent=parent)
