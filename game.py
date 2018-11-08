@@ -11,7 +11,7 @@ user = (local_file[0], 'placeholder')
 serverAddress = (local_file[1],int(local_file[2]))
 
 versionText = 'Zython pre-beta (arcade)'
-screenWidth, screenHeight = (1600//5)*2, (900//5)*2
+screenWidth, screenHeight = 1000, 600
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -91,9 +91,7 @@ game = Game(screenWidth, screenHeight, False)
 mousePos = ()
 
 def connectionSuccess():
-	game.overlay.debugWindow.windowBody.text.connectedText = serverAddress[0]+':'+serverAddress[1]
-	global connecting
-	connecting = False
+	game.overlay.debugWindow.windowBody.text.connectedText = serverAddress[0]+':'+str(serverAddress[1])
 	player = game.world.player
 	recv = eval(server.sendData(str({'start_connection':{'username':user[0], 'password':user[1]}})))
 	player.x, player.y = recv['start_connection']['position']
@@ -126,11 +124,9 @@ def connectionSuccess():
 	threading.Thread(target=sendData).start()
 
 def connectionFailed(a):
+	print(a)
 	game.overlay.debugWindow.windowBody.text.connectedText = 'Not connected'
-	global connecting
-	connecting = False
 
-connecting = True
 server = multiplayer.NetworkClient(1, connectionSuccess, connectionFailed)
 server.establishConnection(*serverAddress)
 

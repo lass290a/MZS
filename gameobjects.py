@@ -242,7 +242,7 @@ if 'overlay objects':
 		def __init__(self, parent):
 			super().__init__(parent=parent)
 
-			self.debugWindow = self.create(Window, windowTitle='Debug Menu', width=200, height=120, X=25, Y=self.game.world.screenHeight-25)
+			self.debugWindow = self.create(Window, windowTitle='Debug Menu', width=260, height=120, X=25, Y=self.game.world.screenHeight-25)
 			self.debugWindow.windowBody.text = self.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
 			self.debugWindow.windowBody.text.connectedText = ''
 			self.debugWindow.windowBody.input = self.debugWindow.windowBody.create(Entry, X=8, Y=-60, width=120, height=25)
