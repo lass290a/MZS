@@ -27,13 +27,19 @@ class ThreadedServer:
 				rawdata = client.recv(size).decode()
 				if rawdata.startswith('{') and rawdata.endswith('}') and ';' not in rawdata:
 					data = eval(rawdata)
+				else:
+					print('Invalid Data Format')
+					self.events({f'{address[0]}:{address[1]}':{'connection':'disconnect'}})
+					client.close()
+					return False
 				if data:
 					json_req = {f'{address[0]}:{address[1]}':data}
 					response = self.events(json_req)
 					client.send(response.encode())
 				else:
 					raise error('Client disconnected')
-			except:
+			except Exception as e:
+				print(e)
 				self.events({f'{address[0]}:{address[1]}':{'connection':'disconnect'}})
 				client.close()
 				return False
@@ -71,5 +77,5 @@ def conn_error(msg):
 if __name__ == "__main__":
 	server = NetworkClient(10, conn_success, conn_error)
 	server.establishConnection("localhost", 4422)
-	resp = server.sendData(str('test'))
+	server.sendData(str({'start_connection':{'username':'alex','password':'lol'}}))
 	print(resp)
