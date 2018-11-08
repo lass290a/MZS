@@ -242,29 +242,32 @@ if 'overlay objects':
 		def __init__(self, parent):
 			super().__init__(parent=parent)
 
-			self.debugWindow = self.create(Window, windowTitle='Debug Menu', width=200, height=80, X=25, Y=self.game.world.screenHeight-25)
+			self.debugWindow = self.create(Window, windowTitle='Debug Menu', width=200, height=120, X=25, Y=self.game.world.screenHeight-25)
 			self.debugWindow.windowBody.text = self.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
 			self.debugWindow.windowBody.text.connectedText = ''
+			self.debugWindow.windowBody.input = self.debugWindow.windowBody.create(Entry, X=8, Y=-60, width=120, height=25)
 		
 		def run(self):
 			self.debugWindow.windowBody.text.string = ('Position:  ('+str(round(self.game.world.player.X, 2))+', '+str(round(self.game.world.player.Y, 2))+')\n'+
 					'Angle: '+str(round(self.game.world.player.Angle%360))+' Degrees\nServer status: '+self.game.overlay.debugWindow.windowBody.text.connectedText)
 
 	class Text(Object):
-		def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift'):
+		def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift', relPosition=True, anchor_x="left", anchor_y="top"):
 			super().__init__(
 				parent=parent,
 				X=X,
 				Y=Y,
-				relPosition=True)
+				relPosition=relPosition)
 			self.string = string
 			self.color = color
 			self.size = size
 			self.font_name = font_name
+			self.anchor_x = anchor_x
+			self.anchor_y = anchor_y
 			def render():
 				self.center_x=self.parent.center_x+self.X
 				self.center_y=self.parent.center_y+self.Y
-				arcade.draw_text(self.string, self.center_x, self.center_y, self.color, self.size, anchor_y='top', font_name=self.font_name)
+				arcade.draw_text(self.string, self.center_x, self.center_y, self.color, self.size, anchor_x=anchor_x, anchor_y=anchor_y, font_name=self.font_name)
 			self.render = render
 
 	class Window(Object):
@@ -299,7 +302,7 @@ if 'overlay objects':
 
 		def on_mouse_release(self, x, y, button, modifiers):
 			if self.dragging == True:
-				self.dragging = False		
+				self.dragging = False
 
 	class WindowBody(Object):
 		def __init__(self, width, height, parent):
@@ -318,9 +321,51 @@ if 'overlay objects':
 			pass
 
 	class Entry(Object):
-		def __init__(self, X, Y, width, ):
+		def __init__(self, X, Y, width, height, parent):
 			super().__init__(
+				parent=parent,
 				X=X,
 				Y=Y,
-				)
+				relPosition=True,
+				anchor=True,
+				sprite='entry',
+				width=width,
+				height=height)
+			self.height = height
+			self.width = width
+			self.inputText = self.create(Text, string='', X=height*0.5*(1-0.5), Y=-height/2, size=height*0.5, anchor_x="left", anchor_y="center", color=(255, 255, 255), relPosition=True, font_name='Consolas')
 
+		def start_focus(self):
+			self.cursorText = self.create(Text, string='', X=self.height*0.5*(1-0.5)-4, Y=-self.height/2, size=self.height*0.5, anchor_x="left", anchor_y="center", color=(255, 255, 255), relPosition=True, font_name='Consolas')
+			self.cursorText.cursorPosition = 0
+			self.cursorText.cursorMaxPosition = 0
+			self.cursorText.string = ' '*self.cursorText.cursorPosition+'|'
+			
+		def stop_focus(self):
+			self.cursorText.delete()
+
+		def on_key_press(self, key, modifiers):
+			#print(key, modifiers)
+			if key in [65509, 65289, 65513, 65507, 65514, 65383, 65508, 65361, 65364, 65362, 65363, 65505, 65367, 65366, 65293, 65365, 65360, 65288]:
+				if key == 65288 and self.cursorText.cursorPosition > 0:
+					self.inputText.string = self.inputText.string[:self.cursorText.cursorPosition-1]+self.inputText.string[self.cursorText.cursorPosition:]
+					self.cursorText.cursorMaxPosition -= 1
+					self.cursorText.cursorPosition -= 1
+					self.cursorText.string = ' '*self.cursorText.cursorPosition+'|'
+				if key == 65293:
+					self.inputText.string = ''
+				if key == 65363 and self.cursorText.cursorPosition < self.cursorText.cursorMaxPosition:
+					self.cursorText.cursorPosition += 1
+					self.cursorText.string = ' '*self.cursorText.cursorPosition+'|'
+				if key == 65361 and self.cursorText.cursorPosition > 0:
+					self.cursorText.cursorPosition -= 1
+					self.cursorText.string = ' '*self.cursorText.cursorPosition+'|'
+			else:
+				try:
+					self.cursorText.cursorMaxPosition += 1
+					self.cursorText.cursorPosition += 1
+					self.inputText.string = self.inputText.string[:self.cursorText.cursorPosition]+(chr(key).upper() if modifiers else chr(key))+self.inputText.string[self.cursorText.cursorPosition:]
+					self.cursorText.string = ' '*self.cursorText.cursorPosition+'|'
+				except OverflowError:
+					pass
+			print(self.cursorText.cursorPosition, self.cursorText.cursorMaxPosition)

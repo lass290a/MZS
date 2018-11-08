@@ -11,7 +11,7 @@ user = (local_file[0], 'placeholder')
 serverAddress = (local_file[1],int(local_file[2]))
 
 versionText = 'Zython pre-beta (arcade)'
-screenWidth, screenHeight = (1600//5)*4, (900//5)*4
+screenWidth, screenHeight = (1600//5)*2, (900//5)*2
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -87,7 +87,7 @@ class Game(arcade.Window):
 		render(self.world)
 		render(self.overlay)
 
-game = Game(screenWidth, screenHeight, True)
+game = Game(screenWidth, screenHeight, False)
 mousePos = ()
 
 def connectionSuccess():
