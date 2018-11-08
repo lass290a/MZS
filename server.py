@@ -112,7 +112,7 @@ def server_started():
 	print('[Server Started]')
 
 def event_handler(raw_json):
-	#print(raw_json)
+	print(raw_json)
 	address = str(list(raw_json.keys())[0])
 	event_data = raw_json[address]
 
@@ -136,12 +136,14 @@ def event_handler(raw_json):
 			address_id[address] = event_data['start_connection']['username']
 			database.create(Player, {'username':event_data['start_connection']['username']})
 			player_ref = database.find(username=event_data['start_connection']['username'])
-			print('User Created!')
+			print('>>> New User Joined')
 			return str({'start_connection':{'position':player_ref.position}})
 	else:
 		for user_ip in address_id:
 			if address == user_ip:
 				player_ref = database.find(username=address_id[user_ip])
+			else:
+				print('>>> No matching User found')
 	for event in event_data['player_data']:
 		if event == 'targetFired':
 			while event_data['player_data'][event] > player_ref.targetFired:
