@@ -112,7 +112,7 @@ def server_started():
 	print('[Server Started]')
 
 def event_handler(raw_json):
-	print(raw_json)
+	#print(raw_json)
 	address = str(list(raw_json.keys())[0])
 	event_data = raw_json[address]
 
@@ -125,22 +125,22 @@ def event_handler(raw_json):
 				pass
 			return False
 
-	if 'start_connection' in list(event_data.keys()):
-		if event_data['start_connection']['username'] in list(address_id.values()):
-			print(f'>>> User {address_id[address]}@{address} already online')
-			return False
-		elif database.find(username=event_data['start_connection']['username']):
-			address_id[address] = event_data['start_connection']['username']
-			player_ref = database.find(username=event_data['start_connection']['username'])
+	if 'connection' in list(event_data.keys()):
+		if event_data['connection']['username'] in list(address_id.values()):
+			print(f">>> User {event_data['connection']['username']}@{address} attempted to join, but the user is already online @{''.join([ip for ip in list(address_id.keys()) if address_id[ip] == event_data['connection']['username']])}")
+			return str({'connection':'disconnect'})
+		elif database.find(username=event_data['connection']['username']):
+			address_id[address] = event_data['connection']['username']
+			player_ref = database.find(username=event_data['connection']['username'])
 			print(f'>>> User {address_id[address]}@{address} joined')
-			return str({'start_connection':{'position':player_ref.position}})
+			return str({'connection':{'position':player_ref.position}})
 
 		else:
-			address_id[address] = event_data['start_connection']['username']
-			database.create(Player, {'username':event_data['start_connection']['username']})
-			player_ref = database.find(username=event_data['start_connection']['username'])
+			address_id[address] = event_data['connection']['username']
+			database.create(Player, {'username':event_data['connection']['username']})
+			player_ref = database.find(username=event_data['connection']['username'])
 			print(f'>>> New user {address_id[address]}@{address} created')
-			return str({'start_connection':{'position':player_ref.position}})
+			return str({'connection':{'position':player_ref.position}})
 	else:
 		for user_ip in address_id:
 			if address == user_ip:

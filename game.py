@@ -101,8 +101,11 @@ mousePos = ()
 def connectionSuccess():
 	game.overlay.debugWindow.windowBody.text.connectedText = serverAddress[0]+':'+str(serverAddress[1])
 	player = game.world.player
-	recv = eval(server.sendData(str({'start_connection':{'username':user[0], 'password':user[1]}})))
-	player.x, player.y = recv['start_connection']['position']
+	recv = eval(server.sendData(str({'connection':{'username':user[0], 'password':user[1]}})))
+	if 'connection' in list(recv.keys()) and recv['connection'] == 'disconnect':
+		connectionFailed('User is already online')
+		return
+	player.X, player.Y = recv['connection']['position']
 	def sendData():
 		while online:
 			timer = datetime.now()
