@@ -75,12 +75,11 @@ if 'world objects':
 	class World(Object):
 		def __init__(self, parent):
 			super().__init__(
-				sprite='TestWorld01',
-				size=2,
+				sprite='cross',
+				size=1,
 				X=0,
 				Y=0,
 				parent=parent)
-			self.player = self.create(Player, x=0, y=0)
 			self.mousePos = (0, 0)
 			self.heldKeys=[]
 
@@ -102,10 +101,6 @@ if 'world objects':
 
 		def on_key_release(self, key, modifiers):
 			del self.heldKeys[self.heldKeys.index(chr(key))]
-
-		def run(self):
-			global screenWidth, screenHeight
-			self.X, self.Y=-self.player.X + self.screenWidth/2, -self.player.Y + self.screenHeight/2
 
 	class Player(Object):
 		def __init__(self, x, y, parent):
@@ -246,10 +241,6 @@ if 'overlay objects':
 			self.debugWindow.windowBody.text = self.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
 			self.debugWindow.windowBody.text.connectedText = ''
 			self.debugWindow.windowBody.input = self.debugWindow.windowBody.create(Entry, X=8, Y=-60, width=120, height=25)
-		
-		def run(self):
-			self.debugWindow.windowBody.text.string = ('Position:  ('+str(round(self.game.world.player.X, 2))+', '+str(round(self.game.world.player.Y, 2))+')\n'+
-					'Angle: '+str(round(self.game.world.player.Angle%360))+' Degrees\nServer status: '+self.game.overlay.debugWindow.windowBody.text.connectedText)
 
 	class Text(Object):
 		def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift', relPosition=True, anchor_x="left", anchor_y="top"):
@@ -345,7 +336,7 @@ if 'overlay objects':
 			self.cursorText.delete()
 
 		def on_key_press(self, key, modifiers):
-			#print(key, modifiers)
+			print(key, modifiers)
 			if key in [65509, 65289, 65513, 65507, 65514, 65383, 65508, 65361, 65364, 65362, 65363, 65505, 65367, 65366, 65293, 65365, 65360, 65288]:
 				if key == 65288 and self.cursorPosition > 0:
 					self.inputText.string = self.inputText.string[:self.cursorPosition-1]+self.inputText.string[self.cursorPosition:]
@@ -354,6 +345,10 @@ if 'overlay objects':
 					self.cursorText.string = ' '*self.cursorPosition+'|'
 				if key == 65293:
 					self.inputText.string = ''
+					self.cursorPosition = 0
+					self.cursorMaxPosition = 0
+					self.cursorText.string = ' '*self.cursorPosition+'|'
+					self.game.focus(self.game.world)
 				if key == 65363 and self.cursorPosition < self.cursorMaxPosition:
 					self.cursorPosition += 1
 					self.cursorText.string = ' '*self.cursorPosition+'|'
