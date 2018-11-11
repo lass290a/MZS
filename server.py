@@ -115,6 +115,7 @@ def event_handler(raw_json):
 	#print(raw_json)
 	address = str(list(raw_json.keys())[0])
 	event_data = raw_json[address]
+	player_ref = False
 
 	if 'connection' in list(event_data.keys()):
 		if event_data['connection'] == 'disconnect':
@@ -145,14 +146,15 @@ def event_handler(raw_json):
 		for user_ip in address_id:
 			if address == user_ip:
 				player_ref = database.find(username=address_id[user_ip])
-			else:
-				print('>>> No matching user found')
+		if not player_ref:
+			print('>>> No matching user found')
+			return str({'connection':'disconnect'})
+
 	for event in event_data['player_data']:
 		if event == 'targetFired':
 			while event_data['player_data'][event] > player_ref.targetFired:
 				hitReg(player_ref)
 				player_ref.targetFired += 1
-
 		else:
 			setattr(player_ref, event, event_data['player_data'][event])
 
