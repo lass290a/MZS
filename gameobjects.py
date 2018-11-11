@@ -94,13 +94,16 @@ if 'world objects':
 
 		def on_mouse_press(self, x, y, button, modifiers):
 			if button == arcade.MOUSE_BUTTON_LEFT:
-				self.player.weapon1.fire()
+				if 'player' in dir(self):
+					self.player.weapon1.fire()
 
 		def on_key_press(self, key, modifiers):
 			self.heldKeys.append(chr(key))
+			print(self.heldKeys)
 
 		def on_key_release(self, key, modifiers):
 			del self.heldKeys[self.heldKeys.index(chr(key))]
+			print(self.heldKeys)
 
 	class Player(Object):
 		def __init__(self, x, y, parent):
