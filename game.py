@@ -39,6 +39,11 @@ class Game(arcade.Window):
 		self.focused = None
 		self.focusedTriggers = []
 		self.focus(self.world)
+		self.overlay.debugWindow = self.overlay.create(Window, windowTitle='Debug Menu', width=260, height=120, X=25, Y=self.world.screenHeight-25)
+		self.overlay.debugWindow.windowBody.text = self.overlay.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
+		self.overlay.debugWindow.windowBody.text.connectedText = ''
+		self.overlay.debugWindow.windowBody.input = self.overlay.debugWindow.windowBody.create(Entry, X=8, Y=-60, width=120, height=25)
+
 		self.set_update_rate(1/60)
 
 	def on_mouse_motion(self, x, y, dx, dy):
@@ -128,13 +133,13 @@ def connectionSuccess():
 			for puppet in game.world.find('Puppet'):
 				puppet.X, puppet.Y = recv['player_data'][puppet.username]['position']
 				puppet.Angle = recv['player_data'][puppet.username]['angle']
-				puppet.weapon1.rightarm.Angle = recv['player_data'][puppet.username]['angle']
-				puppet.weapon1.leftarm.Angle = recv['player_data'][puppet.username]['angle']
+				puppet.weapon1.rightarm.tempAngle = recv['player_data'][puppet.username]['angle']
+				puppet.weapon1.leftarm.tempAngle = recv['player_data'][puppet.username]['angle']
 				puppet.weapon1.targetFired = recv['player_data'][puppet.username]['targetFired']
 			for puppet in joinedList:
 				game.world.create(Puppet, username=puppet, **recv['player_data'][puppet])
-				game.world.children[-1].weapon1.rightarm.angle = recv['player_data'][puppet]['angle']
-				game.world.children[-1].weapon1.leftarm.angle = recv['player_data'][puppet]['angle']
+				game.world.children[-1].weapon1.rightarm.tempAngle = recv['player_data'][puppet]['angle']
+				game.world.children[-1].weapon1.leftarm.tempAngle = recv['player_data'][puppet]['angle']
 				game.world.children[-1].weapon1.targetFired = recv['player_data'][puppet]['targetFired']
 				sleep(1/65-(datetime.now()-timer).seconds+(datetime.now()-timer).microseconds/1000000)
 			player.health = recv['self_data']['health']

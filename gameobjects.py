@@ -99,11 +99,9 @@ if 'world objects':
 
 		def on_key_press(self, key, modifiers):
 			self.heldKeys.append(chr(key))
-			print(self.heldKeys)
 
 		def on_key_release(self, key, modifiers):
 			del self.heldKeys[self.heldKeys.index(chr(key))]
-			print(self.heldKeys)
 
 	class Player(Object):
 		def __init__(self, x, y, parent):
@@ -195,9 +193,11 @@ if 'world objects':
 				X=0,
 				Y=30*self.side)
 			self.shootAngle=0
+			self.tempAngle=0
 
 		def fire(self):
 			self.shootAngle+=uniform(15, 25)*[-1, 1][bool(getrandbits(1))]
+			print(self.parent.parent)
 			self.create(Muzzleflash)
 
 		def run(self):
@@ -208,7 +208,9 @@ if 'world objects':
 				except ZeroDivisionError:
 					pass
 			else:
-				self.angle = self.Angle + self.shootAngle
+				print('puppet')
+				print(self.angle, self.Angle, self.shootAngle)
+				self.Angle = self.tempAngle + self.shootAngle
 
 	class Head(Object):
 		def __init__(self, parent):
@@ -239,11 +241,6 @@ if 'overlay objects':
 	class Overlay(Object):
 		def __init__(self, parent):
 			super().__init__(parent=parent)
-
-			self.debugWindow = self.create(Window, windowTitle='Debug Menu', width=260, height=120, X=25, Y=self.game.world.screenHeight-25)
-			self.debugWindow.windowBody.text = self.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
-			self.debugWindow.windowBody.text.connectedText = ''
-			self.debugWindow.windowBody.input = self.debugWindow.windowBody.create(Entry, X=8, Y=-60, width=120, height=25)
 
 	class Text(Object):
 		def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift', relPosition=True, anchor_x="left", anchor_y="top"):
@@ -282,7 +279,7 @@ if 'overlay objects':
 			self.windowTitle = self.create(Text, string=windowTitle, X=6, Y=-6, size=12)
 
 		def start_focus(self):
-			print(self.center_x, self.center_y, self.windowBody.center_x, self.windowBody.center_y)
+			pass
 
 		def on_mouse_motion(self, x, y, dx, dy):
 			if self.dragging == True:
@@ -339,7 +336,7 @@ if 'overlay objects':
 			self.cursorText.delete()
 
 		def on_key_press(self, key, modifiers):
-			print(key, modifiers)
+			#print(key, modifiers)
 			if key in [65509, 65289, 65513, 65507, 65514, 65383, 65508, 65361, 65364, 65362, 65363, 65505, 65367, 65366, 65293, 65365, 65360, 65288]:
 				if key == 65288 and self.cursorPosition > 0:
 					self.inputText.string = self.inputText.string[:self.cursorPosition-1]+self.inputText.string[self.cursorPosition:]
@@ -366,4 +363,4 @@ if 'overlay objects':
 					self.cursorText.string = ' '*self.cursorPosition+'|'
 				except OverflowError:
 					pass
-			print(self.cursorPosition, self.cursorMaxPosition)
+			#print(self.cursorPosition, self.cursorMaxPosition)
