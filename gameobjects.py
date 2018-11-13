@@ -197,7 +197,6 @@ if 'world objects':
 
 		def fire(self):
 			self.shootAngle+=uniform(15, 25)*[-1, 1][bool(getrandbits(1))]
-			print(self.parent.parent)
 			self.create(Muzzleflash)
 
 		def run(self):
@@ -208,8 +207,6 @@ if 'world objects':
 				except ZeroDivisionError:
 					pass
 			else:
-				print('puppet')
-				print(self.angle, self.Angle, self.shootAngle)
 				self.Angle = self.tempAngle + self.shootAngle
 
 	class Head(Object):
