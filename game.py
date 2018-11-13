@@ -38,6 +38,12 @@ class Game(arcade.Window):
 		self.overlay = Overlay(self)
 		self.focused = None
 		self.focusedTriggers = []
+		
+		self.overlay.debugWindow = self.overlay.create(Window, windowTitle='Debug Menu', width=260, height=120, X=25, Y=self.overlay.game.world.screenHeight-25, minimizable=True, closable=False)
+		self.overlay.debugWindow.windowBody.text = self.overlay.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
+		self.overlay.debugWindow.windowBody.text.connectedText = ''
+		self.overlay.debugWindow.windowBody.input = self.overlay.debugWindow.windowBody.create(Entry, X=8, Y=-60, width=120, height=25)
+		
 		self.focus(self.world)
 		self.set_update_rate(1/60)
 

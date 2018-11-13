@@ -19,7 +19,6 @@ class Object(arcade.Sprite):
 		self.relPosition, self.relAngle = relPosition, relAngle
 		self.X, self.Y, self.Angle = X, Y, Angle
 
-
 		if self.parent != None:
 			self.game = self.parent
 			while self.game.parent != None:
@@ -99,11 +98,11 @@ if 'world objects':
 
 		def on_key_press(self, key, modifiers):
 			self.heldKeys.append(chr(key))
-			print(self.heldKeys)
+			#print(self.heldKeys)
 
 		def on_key_release(self, key, modifiers):
 			del self.heldKeys[self.heldKeys.index(chr(key))]
-			print(self.heldKeys)
+			#print(self.heldKeys)
 
 	class Player(Object):
 		def __init__(self, x, y, parent):
@@ -240,10 +239,21 @@ if 'overlay objects':
 		def __init__(self, parent):
 			super().__init__(parent=parent)
 
-			self.debugWindow = self.create(Window, windowTitle='Debug Menu', width=260, height=120, X=25, Y=self.game.world.screenHeight-25)
-			self.debugWindow.windowBody.text = self.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
-			self.debugWindow.windowBody.text.connectedText = ''
-			self.debugWindow.windowBody.input = self.debugWindow.windowBody.create(Entry, X=8, Y=-60, width=120, height=25)
+	class Button(Object):
+		def __init__(self, parent, X, Y, string, width, height):
+			super().__init__(parent=parent,
+				sprite='widget_entry',
+				size=1,
+				width=width,
+				height=height,
+				anchor=True,
+				X=X,
+				Y=Y,
+				relPosition=True)
+			self.text = self.create(Text, string=string, X=width/2-0.5*len(string)*(height*0.5*(6/7)), Y=-6, size=height*0.5, anchor_x="left", anchor_y="top", relPosition=True)
+
+		def on_mouse_press(self, x, y, button, modifiers):
+			print('pressed')
 
 	class Text(Object):
 		def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift', relPosition=True, anchor_x="left", anchor_y="top"):
@@ -264,10 +274,56 @@ if 'overlay objects':
 				arcade.draw_text(self.string, self.center_x, self.center_y, self.color, self.size, anchor_x=anchor_x, anchor_y=anchor_y, font_name=self.font_name)
 			self.render = render
 
-	class Window(Object):
-		def __init__(self, parent, windowTitle, width, height, X, Y):
+	class WindowCloseButton(Object):
+		def __init__(self, X, Y, parent):
 			super().__init__(
-				sprite='windowtop',
+				sprite='window_close',
+				size=0.5,
+				parent=parent,
+				X=X,
+				Y=Y,
+				anchor=True,
+				relPosition=True)
+
+		def on_mouse_press(self, x, y, button, modifiers):
+			self.parent.delete()
+
+	class WindowMinimizeButton(Object):
+		def __init__(self, X, Y, parent):
+			super().__init__(
+				sprite='window_minimize',
+				size=0.5,
+				parent=parent,
+				X=X,
+				Y=Y,
+				anchor=True,
+				relPosition=True)
+
+		def on_mouse_press(self, x, y, button, modifiers):
+			self.parent.windowBody.X -= 321000
+			self.X -= 321000
+			self.parent.minimizeUndoButton.X += 321000
+
+	class WindowMinimizeUndoButton(Object):
+		def __init__(self, X, Y, parent):
+			super().__init__(
+				sprite='window_minimize_undo',
+				size=0.5,
+				parent=parent,
+				X=X,
+				Y=Y,
+				anchor=True,
+				relPosition=True)
+
+		def on_mouse_press(self, x, y, button, modifiers):
+			self.parent.windowBody.X += 321000
+			self.parent.minimizeButton.X += 321000
+			self.X -= 321000
+
+	class Window(Object):
+		def __init__(self, parent, windowTitle, width, height, X, Y, closable=True, minimizable=True):
+			super().__init__(
+				sprite='window_top',
 				size=2,
 				parent=parent,
 				X=X,
@@ -279,10 +335,18 @@ if 'overlay objects':
 			self.dragOffsetX = 0
 			self.dragOffsetY = 0
 			self.windowBody = self.create(WindowBody, width=width, height=height)
-			self.windowTitle = self.create(Text, string=windowTitle, X=6, Y=-6, size=12)
+			self.windowTitle = self.create(Text, string=windowTitle, X=6, Y=-5, size=12)
+			if closable:
+				self.windowCloseButton = self.create(WindowCloseButton, X=self.width-(16+4), Y=-5)
+				if minimizable:
+					self.minimizeButton = self.create(WindowMinimizeButton, X=self.width-(32+8), Y=-5)
+					self.minimizeUndoButton = self.create(WindowMinimizeUndoButton, X=self.width-(32+8)-321000, Y=-5)
+			elif minimizable:
+				self.minimizeButton = self.create(WindowMinimizeButton, X=self.width-(16+6), Y=-5)
+				self.minimizeUndoButton = self.create(WindowMinimizeUndoButton, X=self.width-(16+6)-321000, Y=-5)
 
 		def start_focus(self):
-			print(self.center_x, self.center_y, self.windowBody.center_x, self.windowBody.center_y)
+			pass#print(self.center_x, self.center_y, self.windowBody.center_x, self.windowBody.center_y)
 
 		def on_mouse_motion(self, x, y, dx, dy):
 			if self.dragging == True:
@@ -301,7 +365,7 @@ if 'overlay objects':
 	class WindowBody(Object):
 		def __init__(self, width, height, parent):
 			super().__init__(
-				sprite='windowbody',
+				sprite='window_body',
 				size=2,
 				parent=parent,
 				X=0,
@@ -322,7 +386,7 @@ if 'overlay objects':
 				Y=Y,
 				relPosition=True,
 				anchor=True,
-				sprite='entry',
+				sprite='widget_entry',
 				width=width,
 				height=height)
 			self.height = height
@@ -339,7 +403,7 @@ if 'overlay objects':
 			self.cursorText.delete()
 
 		def on_key_press(self, key, modifiers):
-			print(key, modifiers)
+			#print(key, modifiers)
 			if key in [65509, 65289, 65513, 65507, 65514, 65383, 65508, 65361, 65364, 65362, 65363, 65505, 65367, 65366, 65293, 65365, 65360, 65288]:
 				if key == 65288 and self.cursorPosition > 0:
 					self.inputText.string = self.inputText.string[:self.cursorPosition-1]+self.inputText.string[self.cursorPosition:]
@@ -366,4 +430,4 @@ if 'overlay objects':
 					self.cursorText.string = ' '*self.cursorPosition+'|'
 				except OverflowError:
 					pass
-			print(self.cursorPosition, self.cursorMaxPosition)
+			#print(self.cursorPosition, self.cursorMaxPosition)

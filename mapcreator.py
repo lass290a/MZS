@@ -30,6 +30,8 @@ class Game(arcade.Window):
 		self.overlay = Overlay(self)
 		self.focused = None
 		self.focusedTriggers = []
+		self.overlay.spawnMenu = self.overlay.create(Window, windowTitle='Spawn menu', width=260, height=120, X=25, Y=self.overlay.game.world.screenHeight-25, closable=False)
+		self.overlay.spawnMenu.windowBody.button = self.overlay.spawnMenu.windowBody.create(Button, string='as', width=120, height=25, X=6, Y=-6)
 		self.focus(self.world)
 		self.set_update_rate(1/60)
 
