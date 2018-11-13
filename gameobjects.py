@@ -98,11 +98,9 @@ if 'world objects':
 
 		def on_key_press(self, key, modifiers):
 			self.heldKeys.append(chr(key))
-			#print(self.heldKeys)
 
 		def on_key_release(self, key, modifiers):
 			del self.heldKeys[self.heldKeys.index(chr(key))]
-			#print(self.heldKeys)
 
 	class Player(Object):
 		def __init__(self, x, y, parent):
@@ -194,6 +192,7 @@ if 'world objects':
 				X=0,
 				Y=30*self.side)
 			self.shootAngle=0
+			self.tempAngle=0
 
 		def fire(self):
 			self.shootAngle+=uniform(15, 25)*[-1, 1][bool(getrandbits(1))]
@@ -207,7 +206,7 @@ if 'world objects':
 				except ZeroDivisionError:
 					pass
 			else:
-				self.angle = self.Angle + self.shootAngle
+				self.Angle = self.tempAngle + self.shootAngle
 
 	class Head(Object):
 		def __init__(self, parent):
@@ -346,7 +345,7 @@ if 'overlay objects':
 				self.minimizeUndoButton = self.create(WindowMinimizeUndoButton, X=self.width-(16+6)-321000, Y=-5)
 
 		def start_focus(self):
-			pass#print(self.center_x, self.center_y, self.windowBody.center_x, self.windowBody.center_y)
+			pass
 
 		def on_mouse_motion(self, x, y, dx, dy):
 			if self.dragging == True:
