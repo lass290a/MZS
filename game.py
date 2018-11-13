@@ -127,8 +127,8 @@ def connectionSuccess():
 			newPuppetList = sorted(recv['player_data'].keys())
 			disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
 			joinedList = list(set(newPuppetList)-set(oldPuppetList))
-			for puppet in [user.username for user in game.world.find('Puppet')]:
-				if puppet in disconnectedList:
+			for puppet in game.world.find('Puppet'):
+				if puppet.username in disconnectedList:
 					puppet.delete()
 			for puppet in game.world.find('Puppet'):
 				puppet.X, puppet.Y = recv['player_data'][puppet.username]['position']
