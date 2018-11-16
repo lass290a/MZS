@@ -95,6 +95,8 @@ if 'world objects':
 			if button == arcade.MOUSE_BUTTON_LEFT:
 				if 'player' in dir(self):
 					self.player.weapon1.fire()
+			if self.hand != None:
+				self.create(self.hand.__class__, X=x, Y=y)
 
 		def on_key_press(self, key, modifiers):
 			self.heldKeys.append(chr(key))
@@ -143,12 +145,12 @@ if 'world objects':
 				pass
 
 	class Puppet(Object):
-		def __init__(self, username, position, angle, targetFired, parent):
+		def __init__(self, parent, username='', X=0, Y=0, angle=0, targetFired=0):
 			super().__init__(
 				sprite='body',
 				size=0.33,
-				X=position[0],
-				Y=position[1],
+				X=X,
+				Y=Y,
 				Angle=angle,
 				parent=parent,
 				relPosition=True)
@@ -251,8 +253,25 @@ if 'overlay objects':
 				relPosition=True)
 			self.text = self.create(Text, string=string, X=width/2-0.5*len(string)*(height*0.5*(6/7)), Y=-6, size=height*0.5, anchor_x="left", anchor_y="top", relPosition=True)
 
+	class ObjectButton(Object):
+		def __init__(self, parent, X, Y, width, hand):
+			super().__init__(parent=parent,
+				sprite='widget_entry',
+				size=1,
+				width=width,
+				height=25,
+				anchor=True,
+				X=X,
+				Y=Y,
+				relPosition=True)
+			self.hand = hand
+			self.text = self.create(Text, string=self.hand.__name__, X=width/2-0.5*len(self.hand.__name__)*10.7, Y=-6, size=12.5, anchor_x="left", anchor_y="top", relPosition=True)
+
 		def on_mouse_press(self, x, y, button, modifiers):
-			print('pressed')
+			if self.game.world.hand != None:
+				self.game.world.hand.delete()
+			self.game.world.hand = self.game.world.create(self.hand, X=x, Y=y)
+			self.game.world.hand.relPosition = False
 
 	class Text(Object):
 		def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift', relPosition=True, anchor_x="left", anchor_y="top"):
@@ -320,7 +339,7 @@ if 'overlay objects':
 			self.X -= 321000
 
 	class Window(Object):
-		def __init__(self, parent, windowTitle, width, height, X, Y, closable=True, minimizable=True):
+		def __init__(self, parent, windowTitle, width, height, X=0, Y=0, movable=True, closable=True, minimizable=True, relPosition=False):
 			super().__init__(
 				sprite='window_top',
 				size=2,
@@ -329,7 +348,9 @@ if 'overlay objects':
 				Y=Y,
 				width=width,
 				height=25,
-				anchor=True)
+				anchor=True,
+				relPosition=relPosition)
+			self.movable = movable
 			self.dragging=False
 			self.dragOffsetX = 0
 			self.dragOffsetY = 0
@@ -353,9 +374,10 @@ if 'overlay objects':
 				self.Y = y+self.dragOffsetY
 
 		def on_mouse_press(self, x, y, button, modifiers):
-			self.dragging = True
-			self.dragOffsetX = self.X-x
-			self.dragOffsetY = self.Y-y
+			if self.movable:
+				self.dragging = True
+				self.dragOffsetX = self.X-x
+				self.dragOffsetY = self.Y-y
 
 		def on_mouse_release(self, x, y, button, modifiers):
 			if self.dragging == True:

@@ -6,6 +6,7 @@ local_file = open('localip.txt','r').read().split('\n')
 
 versionText = 'Zython pre-beta (arcade)'
 screenWidth, screenHeight = 1000, 600
+spawnableObjects = [Puppet, ]
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -30,14 +31,40 @@ class Game(arcade.Window):
 		self.overlay = Overlay(self)
 		self.focused = None
 		self.focusedTriggers = []
-		self.overlay.spawnMenu = self.overlay.create(Window, windowTitle='Spawn menu', width=260, height=120, X=25, Y=self.overlay.game.world.screenHeight-25, closable=False)
-		self.overlay.spawnMenu.windowBody.button = self.overlay.spawnMenu.windowBody.create(Button, string='as', width=120, height=25, X=6, Y=-6)
+		self.overlay.toolsMenu = self.overlay.create(Window,
+			windowTitle='Tools',
+			width=260,
+			height=120,
+			X=25,
+			Y=self.overlay.game.world.screenHeight-25,
+			closable=False)
+		pnt = self.overlay.toolsMenu.windowBody
+		pnt.selectTool = 
+		self.overlay.toolsMenu.windowBody.optionsMenu = self.overlay.toolsMenu.windowBody.create(Window,
+			windowTitle='Options',
+			width=pnt.width,
+			height=120,
+			Y=-pnt.height,
+			movable=False,
+			closable=False,
+			relPosition=True)
+		"""self.overlay.toolsMenu.windowBody.noObject = self.overlay.toolsMenu.windowBody.create(Button, string='None', width=130, height=25, X=6, Y=-6)
+		def setHandToNone(x, y, button, modifiers):
+			if self.world.hand != None:
+				self.world.hand.delete()
+			self.world.hand = None
+		self.overlay.toolsMenu.windowBody.noObject.on_mouse_press = setHandToNone"""
+		"""for index, Class in enumerate([Puppet, Puppet]):
+			self.overlay.toolsMenu.windowBody.create(ObjectButton, hand=Class, width=130, X=6, Y=-6-(1+index)*30)"""
+		self.world.hand = None
 		self.focus(self.world)
 		self.set_update_rate(1/60)
 
 	def on_mouse_motion(self, x, y, dx, dy):
 		if 'on_mouse_motion' in self.focusedTriggers:
 			self.focused.on_mouse_motion(x, y, dx, dy)
+		if self.world.hand != None:
+			self.world.hand.X, self.world.hand.Y = x, y
 
 	def on_mouse_press(self, x, y, button, modifiers):
 		self.tempFocus = self.world
@@ -78,18 +105,18 @@ class Game(arcade.Window):
 
 	def on_draw(self):
 		arcade.start_render()
-		def render(object):
+		def render(object, origin=False):
 			if 'run' in dir(object):
 				object.run()
 			if 'render' in dir(object):
 				object.render()
 				#Display Sprite center
-				#arcade.draw_text('+', object.center_x-6, object.center_y+3, (0, 0, 0), 18, anchor_y='center')
+				if origin: arcade.draw_text('+', object.center_x-6, object.center_y+3, (0, 0, 0), 18, anchor_y='center')
 
 			for obj in object.children:
-				render(obj)
+				render(obj, origin=origin)
 
-		render(self.world)
+		render(self.world, origin=True)
 		render(self.overlay)
 
 game = Game(screenWidth, screenHeight, False)
