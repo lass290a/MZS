@@ -61,6 +61,10 @@ class Object(arcade.Sprite):
 					if self.parent.children!=[] and str(self.parent)!=string:
 						self.parent.children[0].delete(string)
 
+	def deleteChildren(self):
+		while self.children != []:
+			self.children[0].delete()
+
 	def render(self):
 		self.renderAngle()
 		self.renderPosition()

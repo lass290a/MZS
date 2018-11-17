@@ -5,7 +5,7 @@ from datetime import datetime
 local_file = open('localip.txt','r').read().split('\n')
 
 versionText = 'Zython pre-beta (arcade)'
-screenWidth, screenHeight = 1000, 600
+screenWidth, screenHeight = 1700, 900
 spawnableObjects = [Puppet, ]
 
 class Game(arcade.Window):
@@ -24,22 +24,24 @@ class Game(arcade.Window):
 
 	def __init__(self, width, height, full_screen=False):
 		super().__init__(width, height, fullscreen=full_screen)
+		self.focusX = 0
+		self.focusY = 0
+		self.focusPosSpeed = 10
 		arcade.set_background_color(arcade.color.ASH_GREY)
 		self.parent = None
 		self.world = World(self)
 		self.world.screenWidth, self.world.screenHeight = screenWidth, screenHeight
 		self.overlay = Overlay(self)
 		self.focused = None
-		self.focusedTriggers = []
+		self.focusedTriggers = []zz
 		self.overlay.toolsMenu = self.overlay.create(Window,
 			windowTitle='Tools',
 			width=260,
-			height=120,
-			X=25,
-			Y=self.overlay.game.world.screenHeight-25,
+			height=46,
+			X=self.overlay.game.world.screenWidth/2-200,
+			Y=self.overlay.game.world.screenHeight/2+200,
 			closable=False)
 		pnt = self.overlay.toolsMenu.windowBody
-		pnt.selectTool = 
 		self.overlay.toolsMenu.windowBody.optionsMenu = self.overlay.toolsMenu.windowBody.create(Window,
 			windowTitle='Options',
 			width=pnt.width,
@@ -48,14 +50,20 @@ class Game(arcade.Window):
 			movable=False,
 			closable=False,
 			relPosition=True)
-		"""self.overlay.toolsMenu.windowBody.noObject = self.overlay.toolsMenu.windowBody.create(Button, string='None', width=130, height=25, X=6, Y=-6)
-		def setHandToNone(x, y, button, modifiers):
-			if self.world.hand != None:
-				self.world.hand.delete()
-			self.world.hand = None
-		self.overlay.toolsMenu.windowBody.noObject.on_mouse_press = setHandToNone"""
-		"""for index, Class in enumerate([Puppet, Puppet]):
-			self.overlay.toolsMenu.windowBody.create(ObjectButton, hand=Class, width=130, X=6, Y=-6-(1+index)*30)"""
+		pnt.selectTool = pnt.create(Object, X=8, Y=-8, size=0.8, anchor=True, sprite='select_tool', relPosition=True)
+		pnt.selectionMarker = pnt.create(Object, sprite='selected_tool', size=0.8, anchor=True, relPosition=True)
+		def setToolToSelect(x=0, y=0, button=0, modifiers=0):
+			pnt.selectionMarker.X, pnt.selectionMarker.Y = pnt.selectTool.X, pnt.selectTool.Y-29
+			self.overlay.toolsMenu.windowBody.optionsMenu.deleteChildren()
+		pnt.selectTool.on_mouse_press = setToolToSelect
+		pnt.selectTool.on_mouse_press()
+		pnt.creationTool = pnt.create(Object, X=41.6, Y=-8, size=0.8, anchor=True, sprite='creation_tool', relPosition=True)
+		def setToolToCreation(x=0, y=0, button=0, modifiers=0):
+			pnt.selectionMarker.X, pnt.selectionMarker.Y = pnt.creationTool.X, pnt.creationTool.Y-29
+			self.overlay.toolsMenu.windowBody.optionsMenu.deleteChildren()
+			for index, Class in enumerate(spawnableObjects):
+				self.overlay.toolsMenu.windowBody.optionsMenu.create(ObjectButton, hand=Class, width=130, X=6, Y=-6-(1+index)*30)
+		pnt.creationTool.on_mouse_press = setToolToCreation
 		self.world.hand = None
 		self.focus(self.world)
 		self.set_update_rate(1/60)
@@ -104,6 +112,15 @@ class Game(arcade.Window):
 			self.focused.on_key_release(key, modifiers)
 
 	def on_draw(self):
+		if 'a' in self.world.heldKeys:
+			self.world.X+=self.focusPosSpeed
+		if 'd' in self.world.heldKeys:
+			self.world.X-=self.focusPosSpeed
+		if 's' in self.world.heldKeys:
+			self.world.Y+=self.focusPosSpeed
+		if 'w' in self.world.heldKeys:
+			self.world.Y-=self.focusPosSpeed
+
 		arcade.start_render()
 		def render(object, origin=False):
 			if 'run' in dir(object):
