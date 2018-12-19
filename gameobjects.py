@@ -99,8 +99,8 @@ if 'world objects':
 			if button == arcade.MOUSE_BUTTON_LEFT:
 				if 'player' in dir(self):
 					self.player.weapon1.fire()
-			if self.hand != None:
-				self.create(self.hand.__class__, X=x, Y=y)
+			#if self.hand != None:
+			#	self.create(self.hand.__class__, X=x, Y=y)
 
 		def on_key_press(self, key, modifiers):
 			self.heldKeys.append(chr(key))

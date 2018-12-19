@@ -45,11 +45,6 @@ class Game(arcade.Window):
 		self.overlay.debugWindow.windowBody.input = self.overlay.debugWindow.windowBody.create(Entry, X=8, Y=-60, width=120, height=25)
 		
 		self.focus(self.world)
-		self.overlay.debugWindow = self.overlay.create(Window, windowTitle='Debug Menu', width=260, height=120, X=25, Y=self.world.screenHeight-25)
-		self.overlay.debugWindow.windowBody.text = self.overlay.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
-		self.overlay.debugWindow.windowBody.text.connectedText = ''
-		self.overlay.debugWindow.windowBody.input = self.overlay.debugWindow.windowBody.create(Entry, X=8, Y=-60, width=120, height=25)
-
 		self.set_update_rate(1/60)
 
 	def on_mouse_motion(self, x, y, dx, dy):
