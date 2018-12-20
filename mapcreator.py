@@ -6,7 +6,7 @@ local_file = open('localip.txt','r').read().split('\n')
 
 versionText = 'Zython pre-beta (arcade)'
 screenWidth, screenHeight = 1700, 900
-spawnableObjects = [Puppet, ]
+spawnableObjects = [Puppet, Wall]
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -33,7 +33,7 @@ class Game(arcade.Window):
 		self.world.screenWidth, self.world.screenHeight = screenWidth, screenHeight
 		self.overlay = Overlay(self)
 		self.focused = None
-		self.focusedTriggers = []zz
+		self.focusedTriggers = []
 		self.overlay.toolsMenu = self.overlay.create(Window,
 			windowTitle='Tools',
 			width=260,
@@ -109,7 +109,10 @@ class Game(arcade.Window):
 
 	def on_key_release(self, key, modifiers):
 		if 'on_key_release' in self.focusedTriggers:
-			self.focused.on_key_release(key, modifiers)
+			try:
+				self.focused.on_key_release(key, modifiers)
+			except:
+				pass
 
 	def on_draw(self):
 		if 'a' in self.world.heldKeys:

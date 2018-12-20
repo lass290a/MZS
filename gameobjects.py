@@ -149,12 +149,12 @@ if 'world objects':
 				pass
 
 	class Puppet(Object):
-		def __init__(self, parent, username='', position=(0,0), angle=0, targetFired=0):
+		def __init__(self, parent, username='', X=0, Y=0, angle=0, targetFired=0):
 			super().__init__(
 				sprite='body',
 				size=0.33,
-				X=position[0],
-				Y=position[1],
+				X=X,
+				Y=Y,
 				Angle=angle,
 				parent=parent,
 				relPosition=True)
@@ -238,6 +238,20 @@ if 'world objects':
 			self.destructTimer+=1
 			if self.destructTimer==3:
 				self.delete()
+
+if 'static world objects':
+	class Wall(Object):
+		def __init__(self, parent, username='', X=0, Y=0, angle=0):
+			super().__init__(
+				sprite='Wall_Wood_01',
+				size=1,
+				X=X,
+				Y=Y,
+				Angle=(angle//90)*90,
+				parent=parent,
+				relPosition=True)
+
+
 
 if 'overlay objects':
 	class Overlay(Object):

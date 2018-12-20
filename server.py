@@ -55,7 +55,6 @@ class Object:
 					objects.append(object)
 			return objects
 
-
 		elif type != None:
 			objecttype=[]
 			for object in self.subObjects:
