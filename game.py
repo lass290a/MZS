@@ -8,6 +8,7 @@ from time import sleep
 local_file = open('localip.txt','r').read().split('\n')
 
 user = (local_file[0], 'placeholder')
+print(user)
 serverAddress = (local_file[1],int(local_file[2]))
 print(serverAddress)
 
