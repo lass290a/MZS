@@ -149,12 +149,12 @@ if 'world objects':
 				pass
 
 	class Puppet(Object):
-		def __init__(self, parent, username='', X=0, Y=0, angle=0, targetFired=0):
+		def __init__(self, parent, username='', position=(0,0), angle=0, targetFired=0):
 			super().__init__(
 				sprite='body',
 				size=0.33,
-				X=X,
-				Y=Y,
+				X=position[0],
+				Y=position[1],
 				Angle=angle,
 				parent=parent,
 				relPosition=True)
