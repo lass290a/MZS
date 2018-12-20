@@ -2,11 +2,9 @@ import arcade
 from gameobjects import *
 from datetime import datetime
 
-local_file = open('localip.txt','r').read().split('\n')
-
 versionText = 'Zython pre-beta (arcade)'
 screenWidth, screenHeight = 1700, 900
-spawnableObjects = [Puppet, Wall]
+spawnableObjects = [Puppet, Wall, Ground, ]
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -143,3 +141,4 @@ game = Game(screenWidth, screenHeight, False)
 mousePos = ()
 
 arcade.run()
+
