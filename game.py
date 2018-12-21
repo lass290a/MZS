@@ -13,7 +13,7 @@ serverAddress = (local_file[1],int(local_file[2]))
 print(serverAddress)
 
 versionText = 'Zython pre-beta (arcade)'
-screenWidth, screenHeight = 1280, 720
+screenWidth, screenHeight = 800, 600
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -39,6 +39,7 @@ class Game(arcade.Window):
 		self.overlay = Overlay(self)
 		self.focused = None
 		self.focusedTriggers = []
+		self.respawn = False
 		
 		self.overlay.debugWindow = self.overlay.create(Window, windowTitle='Debug Menu', width=260, height=140, X=25, Y=self.overlay.game.world.screenHeight-25, minimizable=True, closable=False)
 		self.overlay.debugWindow.windowBody.text = self.overlay.debugWindow.windowBody.create(Text, string='', X=10, Y=-10, size=10)
@@ -115,12 +116,12 @@ class Game(arcade.Window):
 def PlayerMechanics():
 
 	def Respawn():
-		print('respawn!')
+		game.respawn = True
 
 	if player.health <= 0 and not player.dead:
 		game.overlay.deathmsg = game.overlay.create(Window, windowTitle='', width=game.world.screenWidth//2, height=game.world.screenHeight//2, X=(game.world.screenWidth//2)//2, Y=(game.world.screenHeight//2)*1.5, minimizable=False, closable=False)
 		game.overlay.deathmsg.text = game.overlay.deathmsg.create(Text, string='YOU\nDIED', X=(game.world.screenWidth//2)//2, Y=(game.world.screenHeight//10)*-1, size=game.world.screenHeight//10, color=(200,40,40), anchor_x='center', anchor_y='top', align='center')
-		game.overlay.deathmsg.button = game.overlay.deathmsg.create(Button, string='RESPAWN', width=(game.world.screenWidth//10), height=(game.world.screenHeight//20), X=((game.world.screenWidth//2)//2)-(game.world.screenWidth//10)//2, Y=(game.world.screenHeight//2.5)*-1, function=Respawn)
+		game.overlay.deathmsg.button = game.overlay.deathmsg.create(Button, string='RESPAWN', width=(game.world.screenWidth//8), height=(game.world.screenHeight//20), X=((game.world.screenWidth//2)//2)-(game.world.screenWidth//8)//2, Y=(game.world.screenHeight//2.5)*-1, function=Respawn)
 		print(game.overlay.deathmsg.height, game.world.screenHeight)
 		player.dead = True
 
@@ -138,8 +139,12 @@ def connectionSuccess():
 	def sendData():
 		while online:
 			timer = datetime.now()
-			recv = eval(server.sendData(str({'player_data':{'position':(round(player.X, 2), round(player.Y, 2)) , 'angle':round(player.Angle, 2), 'targetFired': player.weapon1.targetFired}})))
-			
+			delivery_content = {'player_data':{'position':(round(player.X, 2), round(player.Y, 2)) , 'angle':round(player.Angle, 2), 'targetFired': player.weapon1.targetFired}}
+			if game.respawn and player.health<=0:
+				delivery_content['player_data']['dead'] = False
+				game.respawn = False
+			recv = eval(server.sendData(str(delivery_content)))
+
 			# Puppet animations
 			oldPuppetList = sorted([puppet.username for puppet in game.world.find("Puppet")])
 			newPuppetList = sorted(recv['player_data'].keys())
@@ -163,6 +168,11 @@ def connectionSuccess():
 				game.world.children[-1].weapon1.targetFired = recv['player_data'][puppet]['targetFired']
 			#sleep(1/60-(datetime.now()-timer).seconds+(datetime.now()-timer).microseconds/1000000)
 			player.health = recv['self_data']['health']
+			if 'position' in recv['self_data']:
+				player.X, player.Y = recv['self_data']['position']
+			if 'dead' in recv['self_data']:
+				player.dead = recv['self_data']['dead']
+				game.overlay.deathmsg.delete()
 	
 
 	global online

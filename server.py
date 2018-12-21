@@ -77,6 +77,8 @@ class Player(Object):
 			health=100,
 			targetFired=0,
 			parent=parent)
+		self.dead = False
+		self.respawn_location = (0,0)
 
 def dist(A, B, P):
 	""" segment line AB, point P, where each one is an array([x, y]) """
@@ -104,6 +106,7 @@ def hitReg(player_ref):
 				target.health -= 10
 		if target.health <= 0:
 			target.health = 0
+
 
 address_id = {}
 
@@ -151,13 +154,20 @@ def event_handler(raw_json):
 			print('>>> No matching user found')
 			return str({'connection':'disconnect'})
 
-	for event in event_data['player_data']:
+	def check_handler(event):
 		if event == 'targetFired':
 			while event_data['player_data'][event] > player_ref.targetFired:
 				hitReg(player_ref)
 				player_ref.targetFired += 1
-		else:
-			setattr(player_ref, event, event_data['player_data'][event])
+		elif event == 'dead':
+			if event_data['player_data'][event] != player_ref.dead:
+				if event_data['player_data'][event] == False and player_ref.health <= 0:
+					player_ref.health = 100
+
+	for event in event_data['player_data']:
+		check_handler(event)
+		setattr(player_ref, event, event_data['player_data'][event])
+
 
 	send_data = {'player_data':{}, 'self_data':{}}
 
@@ -165,7 +175,12 @@ def event_handler(raw_json):
 		if user != player_ref.username:
 			temp_user = database.find(username=user)
 			send_data['player_data'][user] = {'position':temp_user.position, 'angle':temp_user.angle, 'targetFired':temp_user.targetFired}
-		send_data['self_data']['health'] = player_ref.health
+		else:
+			send_data['self_data']['health'] = player_ref.health
+			if 'dead' in event_data['player_data']:
+				if event_data['player_data']['dead'] == False and player_ref.health == 100:
+					send_data['self_data']['dead'] == False
+					send_data['self_data']['position'] == self.respawn_location
 	return str(send_data)
 
 
