@@ -74,7 +74,7 @@ class Object(arcade.Sprite):
 		self.center_x-=self.offsetX
 		self.center_y-=self.offsetY
 
-if 'world objects':
+if 'player objects':
 	class World(Object):
 		def __init__(self, parent):
 			super().__init__(
@@ -128,6 +128,7 @@ if 'world objects':
 			self.weapon1 = self.create(Weapon1, targetFired=0)
 			self.head = self.create(Head)
 			self.health = 100
+			self.dead = False
 
 		def run(self):
 			if 'a' in self.parent.heldKeys:
@@ -269,7 +270,7 @@ if 'overlay objects':
 			super().__init__(parent=parent)
 
 	class Button(Object):
-		def __init__(self, parent, X, Y, string, width, height):
+		def __init__(self, parent, X, Y, string, width, height, function):
 			super().__init__(parent=parent,
 				sprite='widget_entry',
 				size=1,
@@ -280,6 +281,10 @@ if 'overlay objects':
 				Y=Y,
 				relPosition=True)
 			self.text = self.create(Text, string=string, X=width/2-0.5*len(string)*(height*0.5*(6/7)), Y=-6, size=height*0.5, anchor_x="left", anchor_y="top", relPosition=True)
+			self.function_callback = function
+			
+		def on_mouse_press(self, x, y, button, modifiers):
+			self.function_callback()
 
 	class ObjectButton(Object):
 		def __init__(self, parent, X, Y, width, hand):
@@ -302,7 +307,7 @@ if 'overlay objects':
 			self.game.world.hand.relPosition = False
 
 	class Text(Object):
-		def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift', relPosition=True, anchor_x="left", anchor_y="top"):
+		def __init__(self, string, X, Y, size, parent, color=(255, 255, 255), font_name='Bahnschrift', relPosition=True, anchor_x="left", anchor_y="top", align='left'):
 			super().__init__(
 				parent=parent,
 				X=X,
@@ -312,12 +317,13 @@ if 'overlay objects':
 			self.color = color
 			self.size = size
 			self.font_name = font_name
+			self.align = align
 			self.anchor_x = anchor_x
 			self.anchor_y = anchor_y
 			def render():
 				self.center_x=self.parent.center_x+self.X
 				self.center_y=self.parent.center_y+self.Y
-				arcade.draw_text(self.string, self.center_x, self.center_y, self.color, self.size, anchor_x=anchor_x, anchor_y=anchor_y, font_name=self.font_name)
+				arcade.draw_text(self.string, self.center_x, self.center_y, self.color, self.size, align=align, anchor_x=anchor_x, anchor_y=anchor_y, font_name=self.font_name)
 			self.render = render
 
 	class WindowCloseButton(Object):

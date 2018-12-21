@@ -13,7 +13,7 @@ serverAddress = (local_file[1],int(local_file[2]))
 print(serverAddress)
 
 versionText = 'Zython pre-beta (arcade)'
-screenWidth, screenHeight = 1000, 600
+screenWidth, screenHeight = 1280, 720
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -35,15 +35,15 @@ class Game(arcade.Window):
 		self.parent = None
 		self.world = World(self)
 		self.world.player = self.world.create(Player, x=0, y=0)
-		self.world.screenWidth, self.world.screenHeight = screenWidth, screenHeight
+		self.world.screenWidth, self.world.screenHeight = width, height
 		self.overlay = Overlay(self)
 		self.focused = None
 		self.focusedTriggers = []
 		
-		self.overlay.debugWindow = self.overlay.create(Window, windowTitle='Debug Menu', width=260, height=120, X=25, Y=self.overlay.game.world.screenHeight-25, minimizable=True, closable=False)
-		self.overlay.debugWindow.windowBody.text = self.overlay.debugWindow.windowBody.create(Text, string='', X=8, Y=-8, size=10)
+		self.overlay.debugWindow = self.overlay.create(Window, windowTitle='Debug Menu', width=260, height=140, X=25, Y=self.overlay.game.world.screenHeight-25, minimizable=True, closable=False)
+		self.overlay.debugWindow.windowBody.text = self.overlay.debugWindow.windowBody.create(Text, string='', X=10, Y=-10, size=10)
 		self.overlay.debugWindow.windowBody.text.connectedText = ''
-		self.overlay.debugWindow.windowBody.input = self.overlay.debugWindow.windowBody.create(Entry, X=8, Y=-60, width=120, height=25)
+		self.overlay.debugWindow.windowBody.input = self.overlay.debugWindow.windowBody.create(Entry, X=10, Y=-80, width=120, height=25)
 		
 		self.focus(self.world)
 		self.set_update_rate(1/60)
@@ -98,22 +98,38 @@ class Game(arcade.Window):
 				object.render()
 				#Display Sprite center
 				#arcade.draw_text('+', object.center_x-6, object.center_y+3, (0, 0, 0), 18, anchor_y='center')
-
 			for obj in object.children:
 				render(obj)
 
 		self.world.X, self.world.Y=-self.world.player.X + screenWidth/2, -self.world.player.Y + screenHeight/2
-		self.overlay.debugWindow.windowBody.text.string = ('Position:  ('+str(round(self.world.player.X, 2))+', '+str(round(self.world.player.Y, 2))+')\n'+
-			'Angle: '+str(round(self.world.player.Angle%360))+' Degrees\nServer status: '+self.overlay.debugWindow.windowBody.text.connectedText)
+		self.overlay.debugWindow.windowBody.text.string = (
+			'Position: ('+str(round(self.world.player.X, 2))+', '+str(round(self.world.player.Y, 2))+')\n'+
+			'Angle: '+str(round(self.world.player.Angle%360))+' Degrees\n'+
+			'Server status: '+self.overlay.debugWindow.windowBody.text.connectedText+'\n'+
+			'Health: '+str(player.health))
 		render(self.world)
 		render(self.overlay)
+		PlayerMechanics()
+
+
+def PlayerMechanics():
+
+	def Respawn():
+		print('respawn!')
+
+	if player.health <= 0 and not player.dead:
+		game.overlay.deathmsg = game.overlay.create(Window, windowTitle='', width=game.world.screenWidth//2, height=game.world.screenHeight//2, X=(game.world.screenWidth//2)//2, Y=(game.world.screenHeight//2)*1.5, minimizable=False, closable=False)
+		game.overlay.deathmsg.text = game.overlay.deathmsg.create(Text, string='YOU\nDIED', X=(game.world.screenWidth//2)//2, Y=(game.world.screenHeight//10)*-1, size=game.world.screenHeight//10, color=(200,40,40), anchor_x='center', anchor_y='top', align='center')
+		game.overlay.deathmsg.button = game.overlay.deathmsg.create(Button, string='RESPAWN', width=(game.world.screenWidth//10), height=(game.world.screenHeight//20), X=((game.world.screenWidth//2)//2)-(game.world.screenWidth//10)//2, Y=(game.world.screenHeight//2.5)*-1, function=Respawn)
+		print(game.overlay.deathmsg.height, game.world.screenHeight)
+		player.dead = True
 
 game = Game(screenWidth, screenHeight, False)
+player = game.world.player
 mousePos = ()
 
 def connectionSuccess():
 	game.overlay.debugWindow.windowBody.text.connectedText = serverAddress[0]+':'+str(serverAddress[1])
-	player = game.world.player
 	recv = eval(server.sendData(str({'connection':{'username':user[0], 'password':user[1]}})))
 	if 'connection' in list(recv.keys()) and recv['connection'] == 'disconnect':
 		connectionFailed('User is already online')
@@ -145,8 +161,9 @@ def connectionSuccess():
 				game.world.children[-1].weapon1.rightarm.tempAngle = recv['player_data'][puppet]['angle']
 				game.world.children[-1].weapon1.leftarm.tempAngle = recv['player_data'][puppet]['angle']
 				game.world.children[-1].weapon1.targetFired = recv['player_data'][puppet]['targetFired']
-				sleep(1/65-(datetime.now()-timer).seconds+(datetime.now()-timer).microseconds/1000000)
+			#sleep(1/60-(datetime.now()-timer).seconds+(datetime.now()-timer).microseconds/1000000)
 			player.health = recv['self_data']['health']
+	
 
 	global online
 	online = True
@@ -158,5 +175,4 @@ def connectionFailed(a):
 
 server = multiplayer.NetworkClient(1, connectionSuccess, connectionFailed)
 server.establishConnection(*serverAddress)
-
 arcade.run()

@@ -102,6 +102,8 @@ def hitReg(player_ref):
 			line_seg = (array(player_pos), array((player_pos[0]+bullet_travel*sin(radians(player_angle)), player_pos[1]+bullet_travel*cos(radians(player_angle)))))
 			if dist(*line_seg, array(target_pos)) < player_hitbox:
 				target.health -= 10
+		if target.health <= 0:
+			target.health = 0
 
 address_id = {}
 
