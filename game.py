@@ -36,9 +36,9 @@ class Game(arcade.Window):
 		self.parent = None
 		self.world = World(self)
 		self.world.chunks = self.world.create(ChunkContainer)
-		self.world.player = self.world.create(Player, x=0, y=0)
 		self.world.screenWidth, self.world.screenHeight = width, height
 		self.overlay = Overlay(self)
+		self.world.player = self.world.create(Player, x=0, y=0)
 		self.focused = None
 		self.focusedTriggers = []
 		self.respawn = False
@@ -151,6 +151,7 @@ def PlayerMechanics():
 		game.overlay.deathmsg.button = game.overlay.deathmsg.create(Button, string='RESPAWN', width=(game.world.screenWidth//8), height=(game.world.screenHeight//20), X=((game.world.screenWidth//2)//2)-(game.world.screenWidth//8)//2, Y=(game.world.screenHeight//2.5)*-1, function=Respawn)
 		player.dead = True
 
+
 game = Game(screenWidth, screenHeight, False)
 player = game.world.player
 mousePos = ()
@@ -194,14 +195,15 @@ def connectionSuccess():
 				game.world.children[-1].weapon1.targetFired = recv['player_data'][puppet]['targetFired']
 			#sleep(1/60-(datetime.now()-timer).seconds+(datetime.now()-timer).microseconds/1000000)
 			#print(recv)
-			player.health = recv['self_data']['health']
+			if player.health != recv['self_data']['health']:
+				player.health = recv['self_data']['health']
 			if 'position' in recv['self_data']:
 				player.X, player.Y = recv['self_data']['position']
 			if 'dead' in recv['self_data']:
 				player.dead = recv['self_data']['dead']
-				game.overlay.deathmsg.delete()
-				game.focus(game.world)
-
+				if not player.dead:
+					game.overlay.deathmsg.delete()
+					game.focus(game.world)
 
 	global online
 	online = True

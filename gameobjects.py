@@ -103,7 +103,8 @@ if 'abstract objects':
 			#	self.create(self.hand.__class__, X=x, Y=y)
 
 		def on_key_press(self, key, modifiers):
-			self.heldKeys.append(chr(key))
+			if not chr(key) in self.heldKeys:
+				self.heldKeys.append(chr(key))
 
 		def on_key_release(self, key, modifiers):
 			del self.heldKeys[self.heldKeys.index(chr(key))]
@@ -147,7 +148,9 @@ if 'player objects':
 			self.weapon1 = self.create(Weapon1, targetFired=0)
 			self.head = self.create(Head)
 			self.health = 100
+			self.health_check = 100
 			self.dead = False
+			
 
 		def run(self):
 			if 'a' in self.parent.heldKeys:
@@ -158,7 +161,11 @@ if 'player objects':
 				self.vectorY-=self.accel
 			if 'w' in self.parent.heldKeys:
 				self.vectorY+=self.accel
-			
+
+			if self.health < self.health_check:
+				self.game.overlay.create(Tint, width=self.game.world.screenWidth, height=self.game.world.screenHeight)
+				self.health_check = self.health
+
 			self.vectorX /=self.deaccel
 			self.vectorY /=self.deaccel
 			self.X+=self.vectorX
@@ -267,7 +274,7 @@ if 'static world objects':
 				size=1,
 				X=X,
 				Y=Y,
-				Angle=(angle//90)*90,
+				Angle=angle,
 				parent=parent,
 				relPosition=True)
 
@@ -278,7 +285,7 @@ if 'static world objects':
 				size=1,
 				X=X,
 				Y=Y,
-				Angle=(angle//90)*90,
+				Angle=angle,
 				parent=parent,
 				relPosition=True)
 			
@@ -297,6 +304,27 @@ if 'overlay objects':
 	class Overlay(Object):
 		def __init__(self, parent):
 			super().__init__(parent=parent)
+
+	class Tint(Object):
+		def __init__(self, parent, width, height, color=(240,0,0,0.5), alive_time=0.5):
+			super().__init__(
+				sprite='tint',
+				size=1,
+				width=width,
+				height=height,
+				X=0,
+				Y=height,
+				anchor=True,
+				parent=parent)
+			self.alive_time = alive_time
+			self.color = color
+
+		def run(self):
+			if self.alive_time > 0:
+				self.alpha = self.alive_time
+				self.alive_time -= 0.1
+			else:
+				self.delete()
 
 	class Button(Object):
 		def __init__(self, parent, X, Y, string, width, height, function):
@@ -445,6 +473,18 @@ if 'overlay objects':
 		def on_mouse_release(self, x, y, button, modifiers):
 			if self.dragging == True:
 				self.dragging = False
+
+    class Slider(Object):
+        def __init__(self, X, Y, width, parent, relPosition=True, min=0, max=1, start=0.5, text=True):
+            super().__init__(
+                sprite='widget_entry',
+                width=width,
+                height=10,
+                X=X,
+                Y=Y,
+                relPosition=relPosition,
+                anchor=True)
+            self.value = start
 
 	class WindowBody(Object):
 		def __init__(self, width, height, parent):
