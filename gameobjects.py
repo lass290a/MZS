@@ -74,7 +74,7 @@ class Object(arcade.Sprite):
 		self.center_x-=self.offsetX
 		self.center_y-=self.offsetY
 
-if 'player objects':
+if 'abstract objects':
 	class World(Object):
 		def __init__(self, parent):
 			super().__init__(
@@ -108,6 +108,25 @@ if 'player objects':
 		def on_key_release(self, key, modifiers):
 			del self.heldKeys[self.heldKeys.index(chr(key))]
 
+	class ChunkContainer(Object):
+		def __init__(self, parent):
+			super().__init__(
+				X=0,
+				Y=0,
+				relPosition=True,
+				parent=parent)
+
+	class Chunk(Object):
+		def __init__(self, parent, name, chunk_size):
+			super().__init__(
+				#sprite='cross',
+				#size=10,
+				X=0,#eval(name)[0]*chunk_size,
+				Y=0,#eval(name)[1]*chunk_size,
+				relPosition=True,
+				parent=parent)
+
+if 'player objects':
 	class Player(Object):
 		def __init__(self, x, y, parent):
 			super().__init__(

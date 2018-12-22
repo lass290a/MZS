@@ -14,7 +14,7 @@ serverAddress = (local_file[1],int(local_file[2]))
 print(serverAddress)
 
 versionText = 'Zython pre-beta (arcade)'
-screenWidth, screenHeight = 1280, 720
+screenWidth, screenHeight = 1920, 1080
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -35,6 +35,7 @@ class Game(arcade.Window):
 		arcade.set_background_color(arcade.color.ASH_GREY)
 		self.parent = None
 		self.world = World(self)
+		self.world.chunks = self.world.create(ChunkContainer)
 		self.world.player = self.world.create(Player, x=0, y=0)
 		self.world.screenWidth, self.world.screenHeight = width, height
 		self.overlay = Overlay(self)
@@ -117,26 +118,29 @@ class Game(arcade.Window):
 class ChunkSystem:
 	def __init__(self, map_data, chunk_size=1024):
 		self.map = map_data
-		self.obj_list = []
 		self.chunk_size = chunk_size
 		self.current_player_chunk = ''
-		self.rendered_chunks = []
+		self.rendered_chunks = {}
+		self.despawn_chunks = []
 
 	def update(self):
 		player_chunk = str((int(player.X//self.chunk_size), int(player.Y//self.chunk_size))).replace(' ','')
 		if self.current_player_chunk != player_chunk:
-			surrounding_chunks = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])) for surpos in [(-1,1),(0,1),(1,1),(-1,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
-			for chunk in surrounding_chunks:
-				if chunk in self.map:
-					
-			if player_chunk in self.map:
-				for obj in self.map[player_chunk]:
-					if 
-					print(obj)
-					self.obj_list.append(game.world.create(**obj))
-				self.rendered_chunks.append(player_chunk)
+			surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
+			
+			for chunk_name in surrounding_chunk_names:
+				if chunk_name in self.map and chunk_name not in self.rendered_chunks:
+					self.rendered_chunks[chunk_name] = game.world.chunks.create(Chunk, name=chunk_name, chunk_size=self.chunk_size)
+					for obj in self.map[chunk_name]:
+						self.rendered_chunks[chunk_name].create(**obj)
 
+			for chunk in list(self.rendered_chunks):
+				if chunk not in surrounding_chunk_names:
+					self.rendered_chunks[chunk].delete()
+					del self.rendered_chunks[chunk]
 
+			self.current_player_chunk = player_chunk
+			print(self.rendered_chunks)
 
 def PlayerMechanics():
 
