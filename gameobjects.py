@@ -242,9 +242,9 @@ if 'player objects':
 
 if 'static world objects':
 	class Wall(Object):
-		def __init__(self, parent, X=0, Y=0, angle=0):
+		def __init__(self, parent, X=0, Y=0, angle=0, texture='Wall_Wood_01'):
 			super().__init__(
-				sprite='Wall_Wood_01',
+				sprite=texture,
 				size=1,
 				X=X,
 				Y=Y,
@@ -253,9 +253,9 @@ if 'static world objects':
 				relPosition=True)
 
 	class Ground(Object):
-		def __init__(self, parent, X=0, Y=0, angle=0):
+		def __init__(self, parent, X=0, Y=0, angle=0, texture='Grass_01'):
 			super().__init__(
-				sprite='Grass_01',
+				sprite=texture,
 				size=1,
 				X=X,
 				Y=Y,
@@ -263,6 +263,16 @@ if 'static world objects':
 				parent=parent,
 				relPosition=True)
 			
+	class Car(Object):
+		def __init__(self, parent, X=0, Y=0, angle=0):
+			super().__init__(
+				sprite='Red_Car_01',
+				size=1,
+				X=X,
+				Y=Y,
+				Angle=angle,
+				parent=parent,
+				relPosition=True) 
 
 if 'overlay objects':
 	class Overlay(Object):
@@ -282,7 +292,7 @@ if 'overlay objects':
 				relPosition=True)
 			self.text = self.create(Text, string=string, X=width/2-0.5*len(string)*(height*0.5*(6/7)), Y=-6, size=height*0.5, anchor_x="left", anchor_y="top", relPosition=True)
 			self.function_callback = function
-			
+
 		def on_mouse_press(self, x, y, button, modifiers):
 			self.function_callback()
 

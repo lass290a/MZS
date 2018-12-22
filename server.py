@@ -82,13 +82,13 @@ class Player(Object):
 
 def dist(A, B, P):
 	""" segment line AB, point P, where each one is an array([x, y]) """
-	if all(A == P) or all(B == P):
+	if all(A==P) or all(B==P):
 		return 0
-	if arccos(dot((P - A) / norm(P - A), (B - A) / norm(B - A))) > pi / 2:
-		return norm(P - A)
-	if arccos(dot((P - B) / norm(P - B), (A - B) / norm(A - B))) > pi / 2:
-		return norm(P - B)
-	return round(norm(cross(A-B, A-P))/norm(B-A),3)
+	if arccos(dot((P-A)/norm(P-A),(B-A)/norm(B-A)))>pi/2:
+		return norm(P-A)
+	if arccos(dot((P-B)/norm(P-B),(A-B)/norm(A-B)))>pi/2:
+		return norm(P-B)
+	return round(norm(cross(A-B,A-P))/norm(B-A),3)
 
 def hitReg(player_ref):
 	bullet_travel = 1000
@@ -106,6 +106,7 @@ def hitReg(player_ref):
 				target.health -= 10
 		if target.health <= 0:
 			target.health = 0
+			target.dead = True
 
 
 address_id = {}
@@ -179,9 +180,8 @@ def event_handler(raw_json):
 			send_data['self_data']['health'] = player_ref.health
 			if 'dead' in event_data['player_data']:
 				if event_data['player_data']['dead'] == False and player_ref.health == 100:
-					send_data['self_data']['dead'] == False
-					send_data['self_data']['position'] == self.respawn_location
+					send_data['self_data']['dead'] = False
+					send_data['self_data']['position'] = player_ref.respawn_location
 	return str(send_data)
-
 
 ThreadedServer('',4422, event_handler, server_started).listen()

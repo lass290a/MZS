@@ -6,6 +6,7 @@ from datetime import datetime
 from time import sleep
 
 local_file = open('localip.txt','r').read().split('\n')
+mapworld = eval(open('map1.world', 'r').read())
 
 user = (local_file[0], 'placeholder')
 print(user)
@@ -13,7 +14,7 @@ serverAddress = (local_file[1],int(local_file[2]))
 print(serverAddress)
 
 versionText = 'Zython pre-beta (arcade)'
-screenWidth, screenHeight = 800, 600
+screenWidth, screenHeight = 1280, 720
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -111,6 +112,30 @@ class Game(arcade.Window):
 		render(self.world)
 		render(self.overlay)
 		PlayerMechanics()
+		chunksys.update()
+
+class ChunkSystem:
+	def __init__(self, map_data, chunk_size=1024):
+		self.map = map_data
+		self.obj_list = []
+		self.chunk_size = chunk_size
+		self.current_player_chunk = ''
+		self.rendered_chunks = []
+
+	def update(self):
+		player_chunk = str((int(player.X//self.chunk_size), int(player.Y//self.chunk_size))).replace(' ','')
+		if self.current_player_chunk != player_chunk:
+			surrounding_chunks = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])) for surpos in [(-1,1),(0,1),(1,1),(-1,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
+			for chunk in surrounding_chunks:
+				if chunk in self.map:
+					
+			if player_chunk in self.map:
+				for obj in self.map[player_chunk]:
+					if 
+					print(obj)
+					self.obj_list.append(game.world.create(**obj))
+				self.rendered_chunks.append(player_chunk)
+
 
 
 def PlayerMechanics():
@@ -122,7 +147,6 @@ def PlayerMechanics():
 		game.overlay.deathmsg = game.overlay.create(Window, windowTitle='', width=game.world.screenWidth//2, height=game.world.screenHeight//2, X=(game.world.screenWidth//2)//2, Y=(game.world.screenHeight//2)*1.5, minimizable=False, closable=False)
 		game.overlay.deathmsg.text = game.overlay.deathmsg.create(Text, string='YOU\nDIED', X=(game.world.screenWidth//2)//2, Y=(game.world.screenHeight//10)*-1, size=game.world.screenHeight//10, color=(200,40,40), anchor_x='center', anchor_y='top', align='center')
 		game.overlay.deathmsg.button = game.overlay.deathmsg.create(Button, string='RESPAWN', width=(game.world.screenWidth//8), height=(game.world.screenHeight//20), X=((game.world.screenWidth//2)//2)-(game.world.screenWidth//8)//2, Y=(game.world.screenHeight//2.5)*-1, function=Respawn)
-		print(game.overlay.deathmsg.height, game.world.screenHeight)
 		player.dead = True
 
 game = Game(screenWidth, screenHeight, False)
@@ -140,7 +164,7 @@ def connectionSuccess():
 		while online:
 			timer = datetime.now()
 			delivery_content = {'player_data':{'position':(round(player.X, 2), round(player.Y, 2)) , 'angle':round(player.Angle, 2), 'targetFired': player.weapon1.targetFired}}
-			if game.respawn and player.health<=0:
+			if game.respawn == True and player.health<=0:
 				delivery_content['player_data']['dead'] = False
 				game.respawn = False
 			recv = eval(server.sendData(str(delivery_content)))
@@ -167,12 +191,14 @@ def connectionSuccess():
 				game.world.children[-1].weapon1.leftarm.tempAngle = recv['player_data'][puppet]['angle']
 				game.world.children[-1].weapon1.targetFired = recv['player_data'][puppet]['targetFired']
 			#sleep(1/60-(datetime.now()-timer).seconds+(datetime.now()-timer).microseconds/1000000)
+			#print(recv)
 			player.health = recv['self_data']['health']
 			if 'position' in recv['self_data']:
 				player.X, player.Y = recv['self_data']['position']
 			if 'dead' in recv['self_data']:
 				player.dead = recv['self_data']['dead']
 				game.overlay.deathmsg.delete()
+				game.focus(game.world)
 	
 
 	global online
@@ -185,4 +211,5 @@ def connectionFailed(a):
 
 server = multiplayer.NetworkClient(1, connectionSuccess, connectionFailed)
 server.establishConnection(*serverAddress)
+chunksys = ChunkSystem(mapworld)
 arcade.run()

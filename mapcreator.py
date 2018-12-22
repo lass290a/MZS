@@ -24,7 +24,7 @@ class Game(arcade.Window):
 		super().__init__(width, height, fullscreen=full_screen)
 		self.focusX = 0
 		self.focusY = 0
-		self.focusPosSpeed = 10
+		self.focusPosSpeed = 5
 		arcade.set_background_color(arcade.color.ASH_GREY)
 		self.parent = None
 		self.world = World(self)
@@ -63,6 +63,7 @@ class Game(arcade.Window):
 				self.overlay.toolsMenu.windowBody.optionsMenu.create(ObjectButton, hand=Class, width=130, X=6, Y=-6-(1+index)*30)
 		pnt.creationTool.on_mouse_press = setToolToCreation
 		self.world.hand = None
+		self.snap_pixel = 64
 		self.focus(self.world)
 		self.set_update_rate(1/60)
 
@@ -70,7 +71,10 @@ class Game(arcade.Window):
 		if 'on_mouse_motion' in self.focusedTriggers:
 			self.focused.on_mouse_motion(x, y, dx, dy)
 		if self.world.hand != None:
-			self.world.hand.X, self.world.hand.Y = x, y
+			if self.snap_pixel == None:
+				self.world.hand.X, self.world.hand.Y = x-self.world.X, y-self.world.Y
+			else:
+				self.world.hand.X, self.world.hand.Y = (((x-self.world.X)//self.snap_pixel)*self.snap_pixel), (((y-self.world.Y)//self.snap_pixel)*self.snap_pixel)
 
 	def on_mouse_press(self, x, y, button, modifiers):
 		self.tempFocus = self.world
