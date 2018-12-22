@@ -36,8 +36,8 @@ class Game(arcade.Window):
 			windowTitle='Tools',
 			width=260,
 			height=46,
-			X=self.overlay.game.world.screenWidth/2-200,
-			Y=self.overlay.game.world.screenHeight/2+200,
+			X=80,
+			Y=self.overlay.game.world.screenHeight-80,
 			closable=False)
 		pnt = self.overlay.toolsMenu.windowBody
 		self.overlay.toolsMenu.windowBody.optionsMenu = self.overlay.toolsMenu.windowBody.create(Window,
@@ -50,17 +50,36 @@ class Game(arcade.Window):
 			relPosition=True)
 		pnt.selectTool = pnt.create(Object, X=8, Y=-8, size=0.8, anchor=True, sprite='select_tool', relPosition=True)
 		pnt.selectionMarker = pnt.create(Object, sprite='selected_tool', size=0.8, anchor=True, relPosition=True)
+		
 		def setToolToSelect(x=0, y=0, button=0, modifiers=0):
 			pnt.selectionMarker.X, pnt.selectionMarker.Y = pnt.selectTool.X, pnt.selectTool.Y-29
-			self.overlay.toolsMenu.windowBody.optionsMenu.deleteChildren()
+			self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.deleteChildren()
+			try:
+				if self.world.hand != None:
+					self.world.hand.delete()
+					self.world.hand = None
+			except AttributeError:
+				pass
+		
 		pnt.selectTool.on_mouse_press = setToolToSelect
 		pnt.selectTool.on_mouse_press()
 		pnt.creationTool = pnt.create(Object, X=41.6, Y=-8, size=0.8, anchor=True, sprite='creation_tool', relPosition=True)
+		
 		def setToolToCreation(x=0, y=0, button=0, modifiers=0):
 			pnt.selectionMarker.X, pnt.selectionMarker.Y = pnt.creationTool.X, pnt.creationTool.Y-29
-			self.overlay.toolsMenu.windowBody.optionsMenu.deleteChildren()
+			self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.deleteChildren()
+			self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.objectsMenu = self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.create(Window,
+				windowTitle='Objects',
+				width=self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.width,
+				height=180,
+				Y=-self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.height,
+				movable=False,
+				closable=False,
+				relPosition=True)
+			pnt.snapSlider = pnt.create(Slider, X=6, Y=-6, width=50, min=0, max=1, start=0.5, text=True)
 			for index, Class in enumerate(spawnableObjects):
-				self.overlay.toolsMenu.windowBody.optionsMenu.create(ObjectButton, hand=Class, width=130, X=6, Y=-6-(1+index)*30)
+				self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.objectsMenu.windowBody.create(ObjectButton, hand=Class, width=130, X=6, Y=-6-(index)*30)
+		
 		pnt.creationTool.on_mouse_press = setToolToCreation
 		self.world.hand = None
 		self.snap_pixel = 64
@@ -139,7 +158,7 @@ class Game(arcade.Window):
 				render(obj, origin=origin)
 
 		render(self.world, origin=True)
-		render(self.overlay)
+		render(self.overlay, origin=False)
 
 game = Game(screenWidth, screenHeight, False)
 mousePos = ()
