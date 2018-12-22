@@ -14,7 +14,7 @@ serverAddress = (local_file[1],int(local_file[2]))
 print(serverAddress)
 
 versionText = 'Zython pre-beta (arcade)'
-screenWidth, screenHeight = 1920, 1080
+screenWidth, screenHeight = 1280, 720
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -121,7 +121,6 @@ class ChunkSystem:
 		self.chunk_size = chunk_size
 		self.current_player_chunk = ''
 		self.rendered_chunks = {}
-		self.despawn_chunks = []
 
 	def update(self):
 		player_chunk = str((int(player.X//self.chunk_size), int(player.Y//self.chunk_size))).replace(' ','')
@@ -140,7 +139,6 @@ class ChunkSystem:
 					del self.rendered_chunks[chunk]
 
 			self.current_player_chunk = player_chunk
-			print(self.rendered_chunks)
 
 def PlayerMechanics():
 
@@ -203,7 +201,7 @@ def connectionSuccess():
 				player.dead = recv['self_data']['dead']
 				game.overlay.deathmsg.delete()
 				game.focus(game.world)
-	
+
 
 	global online
 	online = True
