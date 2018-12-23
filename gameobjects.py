@@ -329,7 +329,6 @@ if 'overlay objects':
 				self.alpha = self.alive_time
 				self.alive_time -= self.fade_speed
 
-
 	class Button(Object):
 		def __init__(self, parent, X, Y, string, width, height, function):
 			super().__init__(parent=parent,
@@ -352,7 +351,7 @@ if 'overlay objects':
 			super().__init__(parent=parent,
 				sprite='slider',
 				relPosition=True,
-				X=-18//2,
+				X=-9,
 				Y=32//2-parent.height/2,
 				width=18,
 				height=32,
@@ -362,13 +361,17 @@ if 'overlay objects':
 
 		def on_mouse_motion(self, x, y, dx, dy):
 			if self.dragging == True:
-				self.X = x+self.dragOffsetX
-				if self.X < -18//2:
-					self.X = -18//2
-				elif self.X > self.parent.width-18//2:
-					self.X = self.parent.width-18//2
-				self.parent.value = self.parent.min+((self.X+18//2)/self.parent.width)*(self.parent.max-self.parent.min)
-				#print(self.parent.value)
+				if self.parent.step != 0:
+					s = self.parent.width/((self.parent.maximum-self.parent.minimum)/self.parent.step)
+					self.X = round((self.dragOffsetX+x+9)/s)*s-9
+				else:
+					self.X = x+self.dragOffsetX
+				if self.X < -9:
+					self.X = -9
+				elif self.X > self.parent.width-9:
+					self.X = self.parent.width-9
+				self.parent.value = self.parent.minimum+((self.X+9)/self.parent.width)*(self.parent.maximum-self.parent.minimum)
+				self.parent.input.set(str(self.parent.value))
 
 		def on_mouse_press(self, x, y, button, modifiers):
 			self.dragging = True
@@ -379,23 +382,36 @@ if 'overlay objects':
 				self.dragging = False
 
 	class Slider(Object):
-		def __init__(self, parent, X, Y, width, step=0, min=0, max=1, start=0.5, text=True):
+		def __init__(self, parent, X, Y, width, step=0, minimum=0, maximum=1, start=0.5, entryLength=50):
 			super().__init__(parent=parent,
 				sprite='slider_body',
 				size=1,
 				width=width,
 				height=10,
-				X=X,
+				X=X+entryLength+10,
 				Y=Y,
 				relPosition=True,
 				anchor=True)
 			self.step = step
-			self.max = max
-			self.min = min
-			self.value = start
+			self.maximum = maximum
+			self.minimum = minimum
+			self.start = start
+			def inputChanged():
+				print('changed')
+				try:
+					self.sliderdrag.X = (min(self.maximum, max(self.minimum, round(float(self.input.get())/self.step)*self.step)) - self.minimum)/(self.maximum-self.minimum)*self.width-9
+				except ValueError:
+					pass
+			def stop_focus_callback():
+				try:
+					self.input.set(str(min(self.maximum, max(self.minimum, round(float(self.input.get())/self.step)*self.step))))
+				except ValueError:
+					self.sliderdrag.X = (self.start - self.minimum)/(self.maximum-self.minimum)*self.width-9
+					self.input.set(str(self.start))
+
+
+			self.input = self.create(Entry, X=-(entryLength+15), Y=-5+12.5, width=entryLength, height=25, callback=inputChanged, stop_focus_callback=stop_focus_callback)
 			self.sliderdrag = self.create(SliderDrag)
-
-
 
 	class ObjectButton(Object):
 		def __init__(self, parent, X, Y, width, hand):
@@ -465,7 +481,7 @@ if 'overlay objects':
 		def on_mouse_press(self, x, y, button, modifiers):
 			self.parent.windowBody.X -= 321000
 			self.X -= 321000
-			self.parent.minimizeUndoButton.X += 321000
+			self.parent.minimumimizeUndoButton.X += 321000
 
 	class WindowMinimizeUndoButton(Object):
 		def __init__(self, X, Y, parent):
@@ -480,7 +496,7 @@ if 'overlay objects':
 
 		def on_mouse_press(self, x, y, button, modifiers):
 			self.parent.windowBody.X += 321000
-			self.parent.minimizeButton.X += 321000
+			self.parent.minimumimizeButton.X += 321000
 			self.X -= 321000
 
 	class Window(Object):
@@ -545,7 +561,7 @@ if 'overlay objects':
 			pass
 
 	class Entry(Object):
-		def __init__(self, X, Y, width, height, parent):
+		def __init__(self, X, Y, width, height, parent, callback=None, stop_focus_callback=None):
 			super().__init__(
 				parent=parent,
 				X=X,
@@ -560,6 +576,16 @@ if 'overlay objects':
 			self.inputText = self.create(Text, string='', X=height*0.5*(1-0.5), Y=-height/2, size=height*0.5, anchor_x="left", anchor_y="center", color=(255, 255, 255), relPosition=True, font_name='Consolas')
 			self.cursorPosition = 0
 			self.cursorMaxPosition = 0
+			self.callback = callback
+			self.stop_focus_callback = stop_focus_callback
+
+		def set(self, a):
+			self.inputText.string = a
+			self.cursorPosition = len(a)
+			self.cursorMaxPosition = len(a)
+
+		def get(self):
+			return self.inputText.string
 
 		def start_focus(self):
 			self.cursorText = self.create(Text, string='', X=self.height*0.5*(1-0.5)-4, Y=-self.height/2, size=self.height*0.5, anchor_x="left", anchor_y="center", color=(255, 255, 255), relPosition=True, font_name='Consolas')
@@ -567,6 +593,15 @@ if 'overlay objects':
 			
 		def stop_focus(self):
 			self.cursorText.delete()
+			if self.stop_focus_callback != None:
+				self.stop_focus_callback()
+		
+		def reset(self):
+			self.inputText.string = ''
+			self.cursorPosition = 0
+			self.cursorMaxPosition = 0
+			self.cursorText.string = ' '*self.cursorPosition+'|'
+			self.game.focus(self.game.world)
 
 		def on_key_press(self, key, modifiers):
 			if key in [65509, 65289, 65513, 65507, 65514, 65383, 65508, 65361, 65364, 65362, 65363, 65505, 65367, 65366, 65293, 65365, 65360, 65288]:
@@ -575,12 +610,6 @@ if 'overlay objects':
 					self.cursorMaxPosition -= 1
 					self.cursorPosition -= 1
 					self.cursorText.string = ' '*self.cursorPosition+'|'
-				if key == 65293:
-					self.inputText.string = ''
-					self.cursorPosition = 0
-					self.cursorMaxPosition = 0
-					self.cursorText.string = ' '*self.cursorPosition+'|'
-					self.game.focus(self.game.world)
 				if key == 65363 and self.cursorPosition < self.cursorMaxPosition:
 					self.cursorPosition += 1
 					self.cursorText.string = ' '*self.cursorPosition+'|'
@@ -595,3 +624,5 @@ if 'overlay objects':
 					self.cursorText.string = ' '*self.cursorPosition+'|'
 				except OverflowError:
 					pass
+			if self.callback != None:
+				self.callback()

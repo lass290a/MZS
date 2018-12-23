@@ -3,7 +3,7 @@ from gameobjects import *
 from datetime import datetime
 
 versionText = 'Zython pre-beta (arcade)'
-screenWidth, screenHeight = 1700, 900
+screenWidth, screenHeight = 1000, 600
 spawnableObjects = [Puppet, Wall, Ground, ]
 
 class Game(arcade.Window):
@@ -76,8 +76,8 @@ class Game(arcade.Window):
 				movable=False,
 				closable=False,
 				relPosition=True)
-			
-			pnt.optionsMenu.windowBody.snapSlider = pnt.optionsMenu.windowBody.create(Slider, X=15, Y=-15, width=160, min=1, max=3, start=0.5, text=True)
+				
+			pnt.optionsMenu.windowBody.snapSlider = pnt.optionsMenu.windowBody.create(Slider, X=15, Y=-15, width=120, minimum=0, step=1, maximum=128, start=32, entryLength=60)
 			
 			for index, Class in enumerate(spawnableObjects):
 				self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.objectsMenu.windowBody.create(ObjectButton, hand=Class, width=130, X=6, Y=-6-(index)*30)
@@ -159,7 +159,7 @@ class Game(arcade.Window):
 				render(obj, origin=origin)
 
 		render(self.world, origin=True)
-		render(self.overlay, origin=True)
+		render(self.overlay, origin=False)
 
 game = Game(screenWidth, screenHeight, False)
 mousePos = ()
