@@ -116,12 +116,13 @@ class Game(arcade.Window):
 		chunksys.update()
 
 class ChunkSystem:
-	def __init__(self, raw_map):
+	def __init__(self, raw_map, debug=False):
 		self.map_name = raw_map['world_name']
 		self.map = raw_map['world_data']
 		self.chunk_size = raw_map['chunk_size']
 		self.current_player_chunk = ''
 		self.rendered_chunks = {}
+		self.debug = debug
 
 	def update(self):
 		player_chunk = str((int(player.X//self.chunk_size), int(player.Y//self.chunk_size))).replace(' ','')
@@ -130,7 +131,7 @@ class ChunkSystem:
 			
 			for chunk_name in surrounding_chunk_names:
 				if chunk_name in self.map and chunk_name not in self.rendered_chunks:
-					self.rendered_chunks[chunk_name] = game.world.chunks.create(Chunk, name=chunk_name, chunk_size=self.chunk_size)
+					self.rendered_chunks[chunk_name] = game.world.chunks.create(Chunk, name=chunk_name, chunk_size=self.chunk_size, debug=self.debug)
 					for obj in self.map[chunk_name]:
 						self.rendered_chunks[chunk_name].create(**obj)
 
@@ -216,5 +217,5 @@ def connectionFailed(a):
 
 server = multiplayer.NetworkClient(1, connectionSuccess, connectionFailed)
 server.establishConnection(*serverAddress)
-chunksys = ChunkSystem(mapworld)
+chunksys = ChunkSystem(mapworld, debug=True)
 arcade.run()

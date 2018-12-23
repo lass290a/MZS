@@ -1,31 +1,55 @@
 {
 'world_name':'testmap01',
-'chunk_size':1024,
+'chunk_size':1280,
 'world_data':
 	{
 		'(0,0)':[
 			{'object':Ground,'X':128,'Y':128,'angle':0,'texture':'Asphalt_01'},
 			{'object':Ground,'X':384,'Y':384,'angle':0,'texture':'Asphalt_01'},
 			{'object':Ground,'X':640,'Y':640,'angle':0,'texture':'Asphalt_01'},
-			{'object':Ground,'X':896,'Y':896,'angle':0,'texture':'Asphalt_01'}
+			{'object':Ground,'X':896,'Y':896,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':1152,'Y':1152,'angle':0,'texture':'Asphalt_01'},
+
+			{'object':Ground,'X':128,'Y':1152,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':384,'Y':896,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':896,'Y':384,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':1152,'Y':128,'angle':0,'texture':'Asphalt_01'}
 			],
 		'(0,-1)':[
-			{'object':Ground,'X':128,'Y':-128,'angle':0,'texture':'Asphalt_01'},
-			{'object':Ground,'X':384,'Y':-384,'angle':0,'texture':'Asphalt_01'},
-			{'object':Ground,'X':640,'Y':-640,'angle':0,'texture':'Asphalt_01'},
-			{'object':Ground,'X':896,'Y':-896,'angle':0,'texture':'Asphalt_01'}
+			{'object':Ground,'X':128,'Y':128,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':384,'Y':384,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':640,'Y':640,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':896,'Y':896,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':1152,'Y':1152,'angle':0,'texture':'Asphalt_01'},
+
+			{'object':Ground,'X':128,'Y':1152,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':384,'Y':896,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':896,'Y':384,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':1152,'Y':128,'angle':0,'texture':'Asphalt_01'}
 			],
 		'(-1,-1)':[
-			{'object':Ground,'X':-128,'Y':-128,'angle':0,'texture':'Asphalt_01'},
-			{'object':Ground,'X':-384,'Y':-384,'angle':0,'texture':'Asphalt_01'},
-			{'object':Ground,'X':-640,'Y':-640,'angle':0,'texture':'Asphalt_01'},
-			{'object':Ground,'X':-896,'Y':-896,'angle':0,'texture':'Asphalt_01'}
+			{'object':Ground,'X':128,'Y':128,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':384,'Y':384,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':640,'Y':640,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':896,'Y':896,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':1152,'Y':1152,'angle':0,'texture':'Asphalt_01'},
+
+			{'object':Ground,'X':128,'Y':1152,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':384,'Y':896,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':896,'Y':384,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':1152,'Y':128,'angle':0,'texture':'Asphalt_01'}
 			],
 		'(-1,0)':[
-			{'object':Ground,'X':-128,'Y':128,'angle':0,'texture':'Asphalt_01'},
-			{'object':Ground,'X':-384,'Y':384,'angle':0,'texture':'Asphalt_01'},
-			{'object':Ground,'X':-640,'Y':640,'angle':0,'texture':'Asphalt_01'},
-			{'object':Ground,'X':-896,'Y':896,'angle':0,'texture':'Asphalt_01'}
+			{'object':Ground,'X':128,'Y':128,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':384,'Y':384,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':640,'Y':640,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':896,'Y':896,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':1152,'Y':1152,'angle':0,'texture':'Asphalt_01'},
+
+			{'object':Ground,'X':128,'Y':1152,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':384,'Y':896,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':896,'Y':384,'angle':0,'texture':'Asphalt_01'},
+			{'object':Ground,'X':1152,'Y':128,'angle':0,'texture':'Asphalt_01'}
 			]	
 	}
 }

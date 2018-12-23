@@ -118,14 +118,39 @@ if 'abstract objects':
 				parent=parent)
 
 	class Chunk(Object):
-		def __init__(self, parent, name, chunk_size):
+		def __init__(self, parent, name, chunk_size, debug=False):
 			super().__init__(
-				#sprite='cross',
-				#size=10,
-				X=0,#eval(name)[0]*chunk_size,
-				Y=0,#eval(name)[1]*chunk_size,
+				X=eval(name)[0]*chunk_size,
+				Y=eval(name)[1]*chunk_size,
 				relPosition=True,
 				parent=parent)
+			if debug:
+				self.create(DebugChunkLayer, name=name, chunk_size=chunk_size)
+
+	class DebugChunkLayer(Object):
+		def __init__(self, parent, name, chunk_size):
+			super().__init__(X=0, Y=0, relPosition=True, parent=parent)
+			self.create(DebugChunk, name=name, pos=(0,chunk_size), angle=0)
+			self.create(DebugChunk, name=name, pos=(chunk_size,chunk_size), angle=270)
+			self.create(DebugChunk, name=name, pos=(0,0), angle=90)
+			self.create(DebugChunk, name=name, pos=(chunk_size,0), angle=180)
+
+		def run(self):
+			if self.parent.children.index(self) != len(self.parent.children):
+				self.parent.children.append(self.parent.children.pop(self.parent.children.index(self)))
+
+	class DebugChunk(Object):
+		def __init__(self, parent, name, pos=(0,0), angle=270):
+			super().__init__(
+				sprite='chunk_debug',
+				size=1,
+				X=pos[0],
+				Y=pos[1],
+				Angle=angle,
+				relPosition=True,
+				parent=parent)
+			self.create(Text, string='Chunk '+name, X=(12 if pos[0]==0 else -128), Y=(26 if pos[1]==0 else -11), size=12, relPosition=True)
+
 
 if 'player objects':
 	class Player(Object):
