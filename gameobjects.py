@@ -149,8 +149,7 @@ if 'player objects':
 			self.head = self.create(Head)
 			self.health = 100
 			self.health_check = 100
-			self.dead = False
-			
+			self.dead = False			
 
 		def run(self):
 			if 'a' in self.parent.heldKeys:
@@ -164,6 +163,10 @@ if 'player objects':
 
 			if self.health < self.health_check:
 				self.game.overlay.create(Tint, width=self.game.world.screenWidth, height=self.game.world.screenHeight)
+				self.health_check = self.health
+
+			if self.health > self.health_check:
+				self.game.overlay.create(Tint, width=self.game.world.screenWidth, height=self.game.world.screenHeight, texture='green_tint')
 				self.health_check = self.health
 
 			self.vectorX /=self.deaccel
@@ -306,9 +309,9 @@ if 'overlay objects':
 			super().__init__(parent=parent)
 
 	class Tint(Object):
-		def __init__(self, parent, width, height, color=(240,0,0,0.5), alive_time=0.5):
+		def __init__(self, parent, width, height, texture='red_tint', alive_time=0.5, fade_speed=0.01):
 			super().__init__(
-				sprite='tint',
+				sprite=texture,
 				size=1,
 				width=width,
 				height=height,
@@ -317,14 +320,15 @@ if 'overlay objects':
 				anchor=True,
 				parent=parent)
 			self.alive_time = alive_time
-			self.color = color
+			self.fade_speed = fade_speed
 
 		def run(self):
-			if self.alive_time > 0:
-				self.alpha = self.alive_time
-				self.alive_time -= 0.1
-			else:
+			if self.alive_time <= 0:
 				self.delete()
+			else:
+				self.alpha = self.alive_time
+				self.alive_time -= self.fade_speed
+
 
 	class Button(Object):
 		def __init__(self, parent, X, Y, string, width, height, function):
@@ -342,6 +346,57 @@ if 'overlay objects':
 
 		def on_mouse_press(self, x, y, button, modifiers):
 			self.function_callback()
+
+	class SliderDrag(Object):
+		def __init__(self, parent):
+			super().__init__(parent=parent,
+				sprite='slider',
+				relPosition=True,
+				X=-18//2,
+				Y=32//2-parent.height/2,
+				width=18,
+				height=32,
+				anchor=True,)
+			self.dragging=False
+			self.dragOffsetX = 0
+
+		def on_mouse_motion(self, x, y, dx, dy):
+			if self.dragging == True:
+				self.X = x+self.dragOffsetX
+				if self.X < -18//2:
+					self.X = -18//2
+				elif self.X > self.parent.width-18//2:
+					self.X = self.parent.width-18//2
+				print()
+				self.parent.value = self.parent.min+((self.X+18//2)/self.parent.width)*(self.parent.max-self.parent.min)
+				#print(self.parent.value)
+
+		def on_mouse_press(self, x, y, button, modifiers):
+			self.dragging = True
+			self.dragOffsetX = self.X-x
+
+		def on_mouse_release(self, x, y, button, modifiers):
+			if self.dragging == True:
+				self.dragging = False
+
+	class Slider(Object):
+		def __init__(self, parent, X, Y, width, step=0, min=0, max=1, start=0.5, text=True):
+			super().__init__(parent=parent,
+				sprite='slider_body',
+				size=1,
+				width=width,
+				height=10,
+				X=X,
+				Y=Y,
+				relPosition=True,
+				anchor=True)
+			self.step = step
+			self.max = max
+			self.min = min
+			self.value = start
+			self.sliderdrag = self.create(SliderDrag)
+
+
 
 	class ObjectButton(Object):
 		def __init__(self, parent, X, Y, width, hand):
@@ -474,17 +529,17 @@ if 'overlay objects':
 			if self.dragging == True:
 				self.dragging = False
 
-    class Slider(Object):
-        def __init__(self, X, Y, width, parent, relPosition=True, min=0, max=1, start=0.5, text=True):
-            super().__init__(
-                sprite='widget_entry',
-                width=width,
-                height=10,
-                X=X,
-                Y=Y,
-                relPosition=relPosition,
-                anchor=True)
-            self.value = start
+	class Slider(Object):
+		def __init__(self, X, Y, width, parent, relPosition=True, min=0, max=1, start=0.5, text=True):
+			super().__init__(
+				sprite='widget_entry',
+				width=width,
+				height=10,
+				X=X,
+				Y=Y,
+				relPosition=relPosition,
+				anchor=True)
+			self.value = start
 
 	class WindowBody(Object):
 		def __init__(self, width, height, parent):
