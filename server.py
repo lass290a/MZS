@@ -12,52 +12,52 @@ class Object:
 		self.type = type
 		self.targetFired = targetFired
 		self.parent = parent
-		self.subObjects=[]
+		self.children=[]
 
 	def create(self, object, input={}):
-		self.subObjects.append(object(parent=self, **input))
-		return self.subObjects[-1]
+		self.children.append(object(parent=self, **input))
+		return self.children[-1]
 
 	def delete(self, string=''):
 		if string=='':
 			string=str(self.parent)
 
-		for obj in self.subObjects:
+		for obj in self.children:
 			obj.delete(string)
-		
+
 		if self.parent!=None:
-			for index, obj in enumerate(self.parent.subObjects):
+			for index, obj in enumerate(self.parent.children):
 				if obj==self:
-					self.parent.subObjects.pop(index)
-					if self.parent.subObjects!=[] and str(self.parent)!=string:
-						self.parent.subObjects[0].delete(string)
+					self.parent.children.pop(index)
+					if self.parent.children!=[] and str(self.parent)!=string:
+						self.parent.children[0].delete(string)
 
 	def find(self, username=None, type=None, near=None):
 		if username == None and type == None and near == None:
 			raise error('find() needs an input')
 		elif username != None:
-			for object in self.subObjects:
+			for object in self.children:
 				if object.username==username:
 					return object
 			return False
 
 		elif near != None and type != None:
 			objects=[]
-			for object in self.subObjects:
+			for object in self.children:
 				if object.type==type and norm(array(getattr(near['object_ref'],'position')) - array(object.position)) < near['radius']:
 					objects.append(object)
 			return objects
 
 		elif near != None:
 			objects=[]
-			for object in self.subObjects:
+			for object in self.children:
 				if norm(array(getattr(near['object_ref'],'position')) - array(object.position)) < near['radius']:
 					objects.append(object)
 			return objects
 
 		elif type != None:
 			objecttype=[]
-			for object in self.subObjects:
+			for object in self.children:
 				if object.type==type:
 					objecttype.append(object)
 			return objecttype

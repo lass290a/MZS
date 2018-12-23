@@ -116,9 +116,10 @@ class Game(arcade.Window):
 		chunksys.update()
 
 class ChunkSystem:
-	def __init__(self, map_data, chunk_size=1024):
-		self.map = map_data
-		self.chunk_size = chunk_size
+	def __init__(self, raw_map):
+		self.map_name = raw_map['world_name']
+		self.map = raw_map['world_data']
+		self.chunk_size = raw_map['chunk_size']
 		self.current_player_chunk = ''
 		self.rendered_chunks = {}
 
