@@ -76,7 +76,9 @@ class Game(arcade.Window):
 				movable=False,
 				closable=False,
 				relPosition=True)
-			pnt.optionsMenu.windowBody.snapSlider = pnt.optionsMenu.windowBody.create(Slider, X=15, Y=-15, width=160, min=1, max=3, step=0.5, start=0.5, text=True)
+			
+			pnt.optionsMenu.windowBody.snapSlider = pnt.optionsMenu.windowBody.create(Slider, X=15, Y=-15, width=160, min=1, max=3, start=0.5, text=True)
+			
 			for index, Class in enumerate(spawnableObjects):
 				self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.objectsMenu.windowBody.create(ObjectButton, hand=Class, width=130, X=6, Y=-6-(index)*30)
 		
@@ -151,7 +153,6 @@ class Game(arcade.Window):
 				object.run()
 			if 'render' in dir(object):
 				object.render()
-				#Display Sprite center
 				if origin: arcade.draw_text('+', object.center_x-6, object.center_y+3, (0, 0, 0), 18, anchor_y='center')
 
 			for obj in object.children:

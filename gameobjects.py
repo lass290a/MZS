@@ -367,7 +367,6 @@ if 'overlay objects':
 					self.X = -18//2
 				elif self.X > self.parent.width-18//2:
 					self.X = self.parent.width-18//2
-				print()
 				self.parent.value = self.parent.min+((self.X+18//2)/self.parent.width)*(self.parent.max-self.parent.min)
 				#print(self.parent.value)
 
@@ -381,6 +380,7 @@ if 'overlay objects':
 
 	class Slider(Object):
 		def __init__(self, parent, X, Y, width, step=0, min=0, max=1, start=0.5, text=True):
+			print('--->', parent)
 			super().__init__(parent=parent,
 				sprite='slider_body',
 				size=1,
@@ -582,7 +582,6 @@ if 'overlay objects':
 			self.cursorText.delete()
 
 		def on_key_press(self, key, modifiers):
-			#print(key, modifiers)
 			if key in [65509, 65289, 65513, 65507, 65514, 65383, 65508, 65361, 65364, 65362, 65363, 65505, 65367, 65366, 65293, 65365, 65360, 65288]:
 				if key == 65288 and self.cursorPosition > 0:
 					self.inputText.string = self.inputText.string[:self.cursorPosition-1]+self.inputText.string[self.cursorPosition:]
@@ -609,4 +608,3 @@ if 'overlay objects':
 					self.cursorText.string = ' '*self.cursorPosition+'|'
 				except OverflowError:
 					pass
-			#print(self.cursorPosition, self.cursorMaxPosition)
