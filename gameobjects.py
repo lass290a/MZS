@@ -380,7 +380,6 @@ if 'overlay objects':
 
 	class Slider(Object):
 		def __init__(self, parent, X, Y, width, step=0, min=0, max=1, start=0.5, text=True):
-			print('--->', parent)
 			super().__init__(parent=parent,
 				sprite='slider_body',
 				size=1,
@@ -528,18 +527,6 @@ if 'overlay objects':
 		def on_mouse_release(self, x, y, button, modifiers):
 			if self.dragging == True:
 				self.dragging = False
-
-	class Slider(Object):
-		def __init__(self, X, Y, width, parent, relPosition=True, min=0, max=1, start=0.5, text=True):
-			super().__init__(
-				sprite='widget_entry',
-				width=width,
-				height=10,
-				X=X,
-				Y=Y,
-				relPosition=relPosition,
-				anchor=True)
-			self.value = start
 
 	class WindowBody(Object):
 		def __init__(self, width, height, parent):
