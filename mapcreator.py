@@ -76,7 +76,7 @@ class Game(arcade.Window):
 				movable=False,
 				closable=False,
 				relPosition=True)
-			pnt.snapSlider = pnt.create(Slider, X=6, Y=-6, width=50, min=0, max=1, start=0.5, text=True)
+			pnt.optionsMenu.windowBody.snapSlider = pnt.optionsMenu.windowBody.create(Slider, X=15, Y=-15, width=160, min=1, max=3, step=0.5, start=0.5, text=True)
 			for index, Class in enumerate(spawnableObjects):
 				self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.objectsMenu.windowBody.create(ObjectButton, hand=Class, width=130, X=6, Y=-6-(index)*30)
 		
@@ -158,7 +158,7 @@ class Game(arcade.Window):
 				render(obj, origin=origin)
 
 		render(self.world, origin=True)
-		render(self.overlay, origin=False)
+		render(self.overlay, origin=True)
 
 game = Game(screenWidth, screenHeight, False)
 mousePos = ()
