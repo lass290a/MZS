@@ -45,8 +45,9 @@ class Game(arcade.Window):
 		
 		self.overlay.debugWindow = self.overlay.create(Window, windowTitle='Debug Menu', width=260, height=140, X=25, Y=self.overlay.game.world.screenHeight-25, minimizable=True, closable=False)
 		self.overlay.debugWindow.windowBody.text = self.overlay.debugWindow.windowBody.create(Text, string='', X=10, Y=-10, size=10)
+		self.overlay.debugWindow.windowBody.text.chunkText = ''
 		self.overlay.debugWindow.windowBody.text.connectedText = ''
-		self.overlay.debugWindow.windowBody.input = self.overlay.debugWindow.windowBody.create(Entry, X=10, Y=-80, width=120, height=25)
+		self.overlay.debugWindow.windowBody.input = self.overlay.debugWindow.windowBody.create(Entry, X=10, Y=-100, width=120, height=25)
 		
 		self.focus(self.world)
 		self.set_update_rate(1/60)
@@ -106,10 +107,11 @@ class Game(arcade.Window):
 
 		self.world.X, self.world.Y=-self.world.player.X + screenWidth/2, -self.world.player.Y + screenHeight/2
 		self.overlay.debugWindow.windowBody.text.string = (
-			'Position: ('+str(round(self.world.player.X, 2))+', '+str(round(self.world.player.Y, 2))+')\n'+
-			'Angle: '+str(round(self.world.player.Angle%360))+' Degrees\n'+
-			'Server status: '+self.overlay.debugWindow.windowBody.text.connectedText+'\n'+
-			'Health: '+str(player.health))
+			f'Position: ({round(self.world.player.X, 2)},{round(self.world.player.Y, 2)})\n'+
+			f'Chunk Pos: {self.overlay.debugWindow.windowBody.text.chunkText}\n'+
+			f'Angle: {str(round(self.world.player.Angle%360))} Degrees\n'+
+			f'Server status: {self.overlay.debugWindow.windowBody.text.connectedText}\n'+
+			f'Health: {player.health}')
 		render(self.world)
 		render(self.overlay)
 		PlayerMechanics()
@@ -126,6 +128,7 @@ class ChunkSystem:
 
 	def update(self):
 		player_chunk = str((int(player.X//self.chunk_size), int(player.Y//self.chunk_size))).replace(' ','')
+		game.overlay.debugWindow.windowBody.text.chunkText = f'{player_chunk} , {(int(player.X%self.chunk_size), int(player.Y%self.chunk_size))}'
 		if self.current_player_chunk != player_chunk:
 			surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
 			
