@@ -4,7 +4,7 @@ from datetime import datetime
 
 versionText = 'Zython pre-beta (arcade)'
 screenWidth, screenHeight = 1000, 600
-spawnableObjects = [Puppet, Wall, Ground, ]
+spawnableObjects = [Puppet, Wall, Ground]
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -76,8 +76,8 @@ class Game(arcade.Window):
 				movable=False,
 				closable=False,
 				relPosition=True)
-				
-			pnt.optionsMenu.windowBody.snapSlider = pnt.optionsMenu.windowBody.create(Slider, X=15, Y=-15, width=120, minimum=0, step=1, maximum=128, start=32, entryLength=60)
+			pnt.optionsMenu.windowBody.snapLabel = pnt.optionsMenu.windowBody.create(Text, string='Snapping: ', X=11, Y=-11, size=12)
+			pnt.optionsMenu.windowBody.snapSlider = pnt.optionsMenu.windowBody.create(Slider, X=98, Y=-15, entryWidth=60, sliderWidth=80, minimum=0, maximum=128, step=1, start=16)
 			
 			for index, Class in enumerate(spawnableObjects):
 				self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.objectsMenu.windowBody.create(ObjectButton, hand=Class, width=130, X=6, Y=-6-(index)*30)

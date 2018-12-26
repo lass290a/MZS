@@ -117,6 +117,14 @@ if 'abstract objects':
 				relPosition=True,
 				parent=parent)
 
+	class ChunkContainer(Object):
+		def __init__(self, parent):
+			super().__init__(
+				X=0,
+				Y=0,
+				relPosition=True,
+				parent=parent)
+
 	class Chunk(Object):
 		def __init__(self, parent, name, chunk_size, debug=False):
 			super().__init__(
@@ -377,11 +385,11 @@ if 'overlay objects':
 				sprite='slider',
 				relPosition=True,
 				X=-9,
-				Y=32//2-parent.height/2,
+				Y=16-parent.height/2,
 				width=18,
 				height=32,
 				anchor=True,)
-			self.dragging=False
+			self.dragging = False
 			self.dragOffsetX = 0
 
 		def on_mouse_motion(self, x, y, dx, dy):
@@ -401,19 +409,19 @@ if 'overlay objects':
 		def on_mouse_press(self, x, y, button, modifiers):
 			self.dragging = True
 			self.dragOffsetX = self.X-x
-
+			
 		def on_mouse_release(self, x, y, button, modifiers):
 			if self.dragging == True:
 				self.dragging = False
 
 	class Slider(Object):
-		def __init__(self, parent, X, Y, width, step=0, minimum=0, maximum=1, start=0.5, entryLength=50):
+		def __init__(self, parent, X, Y, sliderWidth, entryWidth, minimum, maximum, step=0, start=0):
 			super().__init__(parent=parent,
 				sprite='slider_body',
 				size=1,
-				width=width,
+				width=sliderWidth,
 				height=10,
-				X=X+entryLength+10,
+				X=X+entryWidth+10,
 				Y=Y,
 				relPosition=True,
 				anchor=True)
@@ -422,21 +430,24 @@ if 'overlay objects':
 			self.minimum = minimum
 			self.start = start
 			def inputChanged():
-				print('changed')
 				try:
-					self.sliderdrag.X = (min(self.maximum, max(self.minimum, round(float(self.input.get())/self.step)*self.step)) - self.minimum)/(self.maximum-self.minimum)*self.width-9
+					self.sliderdrag.X = (min(self.maximum, max(self.minimum, round(float(self.input.get())/self.step)*self.step)) - self.minimum)/(self.maximum-self.minimum)*self.sliderWidth-9
 				except ValueError:
 					pass
 			def stop_focus_callback():
 				try:
 					self.input.set(str(min(self.maximum, max(self.minimum, round(float(self.input.get())/self.step)*self.step))))
 				except ValueError:
-					self.sliderdrag.X = (self.start - self.minimum)/(self.maximum-self.minimum)*self.width-9
+					self.sliderdrag.X = (self.start - self.minimum)/(self.maximum-self.minimum)*self.sliderWidth-9
 					self.input.set(str(self.start))
 
 
-			self.input = self.create(Entry, X=-(entryLength+15), Y=-5+12.5, width=entryLength, height=25, callback=inputChanged, stop_focus_callback=stop_focus_callback)
+			self.input = self.create(Entry, X=-(entryWidth+15), Y=-5+12.5, width=entryWidth, height=25, callback=inputChanged, stop_focus_callback=stop_focus_callback)
 			self.sliderdrag = self.create(SliderDrag)
+
+		def on_mouse_press(self, x, y, button, modifiers):
+			pass#self.sliderdrag.on_mouse_press(self.sliderdrag.center_x, self.sliderdrag.center_y, 1, 0)
+
 
 	class ObjectButton(Object):
 		def __init__(self, parent, X, Y, width, hand):
