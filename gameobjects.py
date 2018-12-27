@@ -159,7 +159,6 @@ if 'abstract objects':
 				parent=parent)
 			self.create(Text, string='Chunk '+name, X=(12 if pos[0]==0 else -128), Y=(26 if pos[1]==0 else -11), size=12, relPosition=True)
 
-
 if 'player objects':
 	class Player(Object):
 		def __init__(self, x, y, parent):
@@ -336,7 +335,19 @@ if 'static world objects':
 				parent=parent,
 				relPosition=True) 
 
+	class Rock(Object):
+		def __init__(self, parent, X=0, Y=0, angle=0):
+			super().__init__(
+				sprite='stone',
+				size=0.1,
+				X=X,
+				Y=Y,
+				Angle=angle,
+				parent=parent,
+				relPosition=True) 
+
 if 'overlay objects':
+
 	class Overlay(Object):
 		def __init__(self, parent):
 			super().__init__(parent=parent)
@@ -403,8 +414,8 @@ if 'overlay objects':
 					self.X = -9
 				elif self.X > self.parent.width-9:
 					self.X = self.parent.width-9
-				self.parent.value = self.parent.minimum+((self.X+9)/self.parent.width)*(self.parent.maximum-self.parent.minimum)
-				self.parent.input.set(str(self.parent.value))
+				self.parent.input.set(str(round(self.parent.minimum+((self.X+9)/self.parent.width)*(self.parent.maximum-self.parent.minimum),8)))
+				self.parent.changed_callback(self.parent.get())
 
 		def on_mouse_press(self, x, y, button, modifiers):
 			self.dragging = True
@@ -413,9 +424,10 @@ if 'overlay objects':
 		def on_mouse_release(self, x, y, button, modifiers):
 			if self.dragging == True:
 				self.dragging = False
+				self.parent.finished_callback(self.parent.get())
 
 	class Slider(Object):
-		def __init__(self, parent, X, Y, sliderWidth, entryWidth, minimum, maximum, step=0, start=0):
+		def __init__(self, parent, X, Y, sliderWidth, entryWidth, minimum, maximum, step=0, start=0, changed_callback=lambda x:x, finished_callback=lambda x:x, disableLimit=True, roundFunction=lambda value, step: round(float(value)/step)*step):
 			super().__init__(parent=parent,
 				sprite='slider_body',
 				size=1,
@@ -425,29 +437,53 @@ if 'overlay objects':
 				Y=Y,
 				relPosition=True,
 				anchor=True)
+			self.sliderWidth = sliderWidth
 			self.step = step
 			self.maximum = maximum
 			self.minimum = minimum
 			self.start = start
+			self.finished_callback = finished_callback
+			self.changed_callback = changed_callback
+			
 			def inputChanged():
 				try:
-					self.sliderdrag.X = (min(self.maximum, max(self.minimum, round(float(self.input.get())/self.step)*self.step)) - self.minimum)/(self.maximum-self.minimum)*self.sliderWidth-9
-				except ValueError:
+					float(self.input.get())
+					self.sliderdrag.X = (min(self.maximum, max(self.minimum, (roundFunction if self.step != 0 else lambda value, step: value)(float(self.input.get()), self.step))) - self.minimum)/(self.maximum-self.minimum)*self.sliderWidth-9
+				except:
 					pass
-			def stop_focus_callback():
+				self.changed_callback(self.get())
+			
+			def entry_stop_focus_callback():
 				try:
-					self.input.set(str(min(self.maximum, max(self.minimum, round(float(self.input.get())/self.step)*self.step))))
+					self.input.set(str(min(self.maximum, max(self.minimum, round((roundFunction if self.step != 0 else lambda value, step: value)(float(self.input.get()), self.step), 3)))))
 				except ValueError:
 					self.sliderdrag.X = (self.start - self.minimum)/(self.maximum-self.minimum)*self.sliderWidth-9
 					self.input.set(str(self.start))
+				self.finished_callback(self.get())
 
-
-			self.input = self.create(Entry, X=-(entryWidth+15), Y=-5+12.5, width=entryWidth, height=25, callback=inputChanged, stop_focus_callback=stop_focus_callback)
+			self.input = self.create(Entry, X=-(entryWidth+15), Y=-5+12.5, width=entryWidth, height=25, callback=inputChanged, stop_focus_callback=entry_stop_focus_callback)
 			self.sliderdrag = self.create(SliderDrag)
+
+			try:
+				self.input.set(str(min(self.maximum, max(self.minimum, (roundFunction if self.step != 0 else lambda value, step: value)(float(self.start), self.step)))))
+			except ValueError:
+				pass
 
 		def on_mouse_press(self, x, y, button, modifiers):
 			pass#self.sliderdrag.on_mouse_press(self.sliderdrag.center_x, self.sliderdrag.center_y, 1, 0)
 
+		def get(self):
+			return float(self.input.get())
+
+		def reset(self):
+			self.sliderdrag.X = (self.start - self.minimum)/(self.maximum-self.minimum)*self.sliderWidth-9
+			self.input.set(str(self.start))
+
+		def set(self, value):
+			try:
+				self.input.set(str(min(self.maximum, max(self.minimum, (roundFunction if self.step != 0 else lambda value, step: value)(float(value), self.step)))))
+			except ValueError:
+				pass
 
 	class ObjectButton(Object):
 		def __init__(self, parent, X, Y, width, hand):
@@ -517,7 +553,7 @@ if 'overlay objects':
 		def on_mouse_press(self, x, y, button, modifiers):
 			self.parent.windowBody.X -= 321000
 			self.X -= 321000
-			self.parent.minimumimizeUndoButton.X += 321000
+			self.parent.minimizeUndoButton.X += 321000
 
 	class WindowMinimizeUndoButton(Object):
 		def __init__(self, X, Y, parent):
@@ -532,7 +568,7 @@ if 'overlay objects':
 
 		def on_mouse_press(self, x, y, button, modifiers):
 			self.parent.windowBody.X += 321000
-			self.parent.minimumimizeButton.X += 321000
+			self.parent.minimizeButton.X += 321000
 			self.X -= 321000
 
 	class Window(Object):

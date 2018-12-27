@@ -4,7 +4,7 @@ from datetime import datetime
 
 versionText = 'Zython pre-beta (arcade)'
 screenWidth, screenHeight = 1000, 600
-spawnableObjects = [Puppet, Wall, Ground]
+spawnableObjects = [Puppet, Wall, Ground, Car, Rock]
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -64,6 +64,8 @@ class Game(arcade.Window):
 		pnt.selectTool.on_mouse_press = setToolToSelect
 		pnt.selectTool.on_mouse_press()
 		pnt.creationTool = pnt.create(Object, X=41.6, Y=-8, size=0.8, anchor=True, sprite='creation_tool', relPosition=True)
+		self.world.hand = None
+		self.snap_pixel = 64
 		
 		def setToolToCreation(x=0, y=0, button=0, modifiers=0):
 			pnt.selectionMarker.X, pnt.selectionMarker.Y = pnt.creationTool.X, pnt.creationTool.Y-29
@@ -76,15 +78,27 @@ class Game(arcade.Window):
 				movable=False,
 				closable=False,
 				relPosition=True)
-			pnt.optionsMenu.windowBody.snapLabel = pnt.optionsMenu.windowBody.create(Text, string='Snapping: ', X=11, Y=-11, size=12)
-			pnt.optionsMenu.windowBody.snapSlider = pnt.optionsMenu.windowBody.create(Slider, X=98, Y=-15, entryWidth=60, sliderWidth=80, minimum=0, maximum=128, step=1, start=16)
+
+			def snapSliderCallback(value):
+				if self.world.hand != None:
+					self.snap_pixel = value
+
+			pnt.optionsMenu.windowBody.snapLabel = pnt.optionsMenu.windowBody.create(Text, X=11, Y=-11, string='Snapping: ', size=12)
+			pnt.optionsMenu.windowBody.snapSlider = pnt.optionsMenu.windowBody.create(Slider, X=98, Y=-15, entryWidth=60, sliderWidth=80, finished_callback=snapSliderCallback, minimum=0, maximum=128, step=1, start=16)
+			pnt.optionsMenu.windowBody.snapSlider.reset()
+			
+			def angleSliderCallback(value):
+				if self.world.hand != None:
+					self.world.hand.Angle = value
+
+			pnt.optionsMenu.windowBody.angleLabel = pnt.optionsMenu.windowBody.create(Text, X=11, Y=-46, string='Angle: ', size=12)
+			pnt.optionsMenu.windowBody.angleSlider = pnt.optionsMenu.windowBody.create(Slider, X=98, Y=-50, entryWidth=60, sliderWidth=80, changed_callback=angleSliderCallback, minimum=0, maximum=360, step=1, start=0)
+			pnt.optionsMenu.windowBody.angleSlider.reset()
 			
 			for index, Class in enumerate(spawnableObjects):
 				self.overlay.toolsMenu.windowBody.optionsMenu.windowBody.objectsMenu.windowBody.create(ObjectButton, hand=Class, width=130, X=6, Y=-6-(index)*30)
 		
 		pnt.creationTool.on_mouse_press = setToolToCreation
-		self.world.hand = None
-		self.snap_pixel = 64
 		self.focus(self.world)
 		self.set_update_rate(1/60)
 
@@ -92,7 +106,7 @@ class Game(arcade.Window):
 		if 'on_mouse_motion' in self.focusedTriggers:
 			self.focused.on_mouse_motion(x, y, dx, dy)
 		if self.world.hand != None:
-			if self.snap_pixel == None:
+			if self.snap_pixel == None or self.snap_pixel == 0:
 				self.world.hand.X, self.world.hand.Y = x-self.world.X, y-self.world.Y
 			else:
 				self.world.hand.X, self.world.hand.Y = (((x-self.world.X)//self.snap_pixel)*self.snap_pixel), (((y-self.world.Y)//self.snap_pixel)*self.snap_pixel)
@@ -112,6 +126,10 @@ class Game(arcade.Window):
 			self.focus(self.tempFocus, x, y, button, modifiers)
 		elif 'on_mouse_press' in self.focusedTriggers:
 			self.focused.on_mouse_press(x, y, button, modifiers)
+			if self.focused == self.world and self.world.hand != None:
+				hand = self.world.hand
+				self.world.create(hand.__class__, X=hand.X, Y=hand.Y)
+				self.world.children[-1].Angle = hand.Angle
 
 	def on_mouse_release(self, x, y, button, modifiers):
 		if 'on_mouse_release' in self.focusedTriggers:
