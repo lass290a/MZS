@@ -59,12 +59,9 @@ class Object(arcade.Sprite):
 		if self.parent!=None:
 			for index, obj in enumerate(self.parent.children):
 				if obj==self:
-					try:self.game.buffer.remove(self)
-					except:pass
+					self.game.buffer.remove(self)
 					self.parent.children.pop(index)
 					if self.parent.children!=[] and str(self.parent)!=string:
-						try:self.game.buffer.remove(self)
-						except:pass
 						self.parent.children[0].delete(string)
 
 	def deleteChildren(self):
@@ -82,7 +79,7 @@ class Object(arcade.Sprite):
 
 class SpriteBuffer(arcade.SpriteList):
 	def __init__(self):
-		super().__init__(use_spatial_hash=True, spatial_hash_cell_size=128, is_static=False)
+		super().__init__(use_spatial_hash=False, spatial_hash_cell_size=128, is_static=False)
 		self.layer_dict = {}
 		self.sprite_idx = dict()
 
