@@ -33,7 +33,7 @@ class Game(arcade.Window):
 
 	def __init__(self, width, height, full_screen=False):
 		super().__init__(width, height, fullscreen=full_screen)
-		arcade.set_background_color(arcade.color.ASH_GREY)
+		arcade.set_background_color(arcade.color.WHITE)
 
 		self.buffer = SpriteBuffer()
 		self.buffer.newlayer('layer0')
@@ -108,14 +108,7 @@ class Game(arcade.Window):
 	def on_draw(self):
 		self.frame_count += 1
 		arcade.start_render()
-
-		PlayerMechanics()
-		chunksys.update()
-
-
 		self.buffer.draw()
-		#render(self.overlay)
-
 
 		if self.last_time and self.frame_count % 10 == 0:
 			fps = 1.0 / (time() - self.last_time) * 10
@@ -128,16 +121,20 @@ class Game(arcade.Window):
 			self.last_time = time()
 
 		self.world.X, self.world.Y=-self.world.player.X + screenWidth/2, -self.world.player.Y + screenHeight/2
-		#self.overlay.debugWindow.windowBody.text.string = (
-		#	f'Position: ({round(self.world.player.X, 2)},{round(self.world.player.Y, 2)})\n'+
-		#	f'Chunk Pos: {self.overlay.debugWindow.windowBody.text.chunkText}\n'+
-		#	f'Angle: {str(round(self.world.player.Angle%360))} Degrees\n'+
-		#	f'Server status: {self.overlay.debugWindow.windowBody.text.connectedText}\n'+
-		#	f'Health: {player.health}')
+
 		gl.glFlush()
 
 	def update(self, delta_time):
+		PlayerMechanics()
+		chunksys.update()
+		self.overlay.debugWindow.windowBody.text.string = (
+			f'Position: ({round(self.world.player.X, 2)},{round(self.world.player.Y, 2)})\n'+
+			f'Chunk Pos: {self.overlay.debugWindow.windowBody.text.chunkText}\n'+
+			f'Angle: {str(round(self.world.player.Angle%360))} Degrees\n'+
+			f'Server status: {self.overlay.debugWindow.windowBody.text.connectedText}\n'+
+			f'Health: {player.health}')
 		self.buffer.update()
+
 
 class ChunkSystem:
 	def __init__(self, raw_map, debug=False):

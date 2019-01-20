@@ -19,6 +19,8 @@ class Object(arcade.Sprite):
 		self.relPosition, self.relAngle = relPosition, relAngle
 		self.X, self.Y, self.Angle = X, Y, Angle
 
+		self.layer = layer
+
 		if self.parent != None:
 			self.game = self.parent
 			while self.game.parent != None:
@@ -31,14 +33,14 @@ class Object(arcade.Sprite):
 		self.renderAngle = [renderRelAngleFalse, renderRelAngleTrue][relAngle]
 		
 		def renderRelPositionTrue():
-			self.center_x=self.parent.center_x+cos(radians(self.parent.angle))*self.X+cos(radians(self.parent.angle+90))*self.Y
-			self.center_y=self.parent.center_y+sin(radians(self.parent.angle))*self.X+sin(radians(self.parent.angle+90))*self.Y
+			self.center_x=(self.parent.center_x+cos(radians(self.parent.angle))*self.X+cos(radians(self.parent.angle+90))*self.Y)+self.offsetX
+			self.center_y=(self.parent.center_y+sin(radians(self.parent.angle))*self.X+sin(radians(self.parent.angle+90))*self.Y)+self.offsetY
 		def renderRelPositionFalse():
-			self.center_x=self.X
-			self.center_y=self.Y
+			self.center_x=self.X+self.offsetX
+			self.center_y=self.Y+self.offsetY
 		self.renderPosition = [renderRelPositionFalse, renderRelPositionTrue][relPosition]
 
-		self.game.buffer.insert(self, layer)
+		self.game.buffer.insert(self, self.layer)
 
 	def create(self, object, **parameters):
 		self.children.append(object(**parameters, parent=self))
@@ -71,17 +73,11 @@ class Object(arcade.Sprite):
 	def update(self):
 		self.renderAngle()
 		self.renderPosition()
-		#self.center_x+=self.offsetX
-		#self.center_y+=self.offsetY
-		#self.draw()
-		#self.center_x-=self.offsetX
-		#self.center_y-=self.offsetY
 
 class SpriteBuffer(arcade.SpriteList):
 	def __init__(self):
-		super().__init__(use_spatial_hash=False, spatial_hash_cell_size=128, is_static=False)
+		super().__init__()
 		self.layer_dict = {}
-		self.sprite_idx = dict()
 
 	def newlayer(self, layer_name):
 		self.layer_dict[layer_name] = []
@@ -92,11 +88,11 @@ class SpriteBuffer(arcade.SpriteList):
 		else:
 			self.layer_dict[layer_name].append(object)
 		self.sprite_list = [obj for sublist in self.layer_dict.values() for obj in sublist]
-		self.sprite_idx[object] = dict()
-		for idx, sprite in enumerate(self.sprite_list):
-			self.sprite_idx[sprite] = idx
-		object.register_sprite_list(self)
-		self.vao = None
+
+	def remove(self, obj):
+		self.layer_dict[obj.layer].remove(obj)
+		self.sprite_list.remove(obj)
+		obj.kill()
 
 if 'abstract objects':
 	class World(Object):
@@ -278,6 +274,8 @@ if 'player objects':
 				if self.fired < self.targetFired:
 					self.fired+=1
 					self.fire()
+			self.renderAngle()
+			self.renderPosition()
 
 	class Weapon1Arm(Object):
 		def __init__(self, side, parent):
@@ -332,9 +330,15 @@ if 'player objects':
 			self.destructTimer=0
 
 		def update(self):
+			if self.destructTimer == 0:
+				self.renderAngle()
+				self.renderPosition()
+
 			self.destructTimer+=1
+			
 			if self.destructTimer==3:
 				self.delete()
+				print([x.__class__.__name__ for x in self.game.buffer.sprite_list if x.__class__.__name__ != 'Ground'])
 
 if 'static world objects':
 	class Wall(Object):
@@ -555,11 +559,11 @@ if 'overlay objects':
 			self.align = align
 			self.anchor_x = anchor_x
 			self.anchor_y = anchor_y
-			def render():
+
+			def update():
 				self.center_x=self.parent.center_x+self.X
 				self.center_y=self.parent.center_y+self.Y
 				arcade.draw_text(self.string, self.center_x, self.center_y, self.color, self.size, align=align, anchor_x=anchor_x, anchor_y=anchor_y, font_name=self.font_name)
-			self.render = render
 
 	class WindowCloseButton(Object):
 		def __init__(self, X, Y, parent):
