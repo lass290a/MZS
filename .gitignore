@@ -103,3 +103,19 @@ venv.bak/
 # mypy
 .mypy_cache/
 *.txt
+mzs_env/bin/activate
+mzs_env/bin/activate.csh
+mzs_env/bin/activate.fish
+mzs_env/bin/easy_install
+mzs_env/bin/easy_install-3.7
+mzs_env/bin/f2py
+mzs_env/bin/f2py3
+mzs_env/bin/f2py3.7
+mzs_env/bin/futurize
+mzs_env/bin/pasteurize
+mzs_env/bin/pip
+mzs_env/bin/pip3
+mzs_env/bin/pip3.7
+mzs_env/bin/python
+mzs_env/bin/python3
+mzs_env/pyvenv.cfg

@@ -15,7 +15,7 @@ serverAddress = (local_file[1],int(local_file[2]))
 print(serverAddress)
 
 versionText = 'Zython pre-beta (arcade)'
-screenWidth, screenHeight = 1920, 1080
+screenWidth, screenHeight = 1280, 720
 
 class Game(arcade.Window):
 	def focus(self, object, x=0, y=0, button=0, modifiers=0):
@@ -40,7 +40,6 @@ class Game(arcade.Window):
 		self.buffer.newlayer('layer1')
 		self.buffer.newlayer('layer2')
 		self.buffer.newlayer('layer3')
-
 		self.frame_count = 0
 		self.last_time = None
 		self.fps_message = None
