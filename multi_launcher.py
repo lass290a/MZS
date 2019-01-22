@@ -9,4 +9,4 @@ else:
 
 open('localip.txt','w').write('\n'.join(local_file))
 
-import gametest
+import game
