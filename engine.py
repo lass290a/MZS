@@ -1,26 +1,29 @@
 import arcade
 from math import cos, sin, radians, atan
 from inspect import getmro
+import glob, os
+from pyglet import gl
+
+def pos_to_ang(x, y):
+	return 180+(atan((y)/(x))*57.2957795+180*((x) < 0))
 
 class Entity:
-	def __init__(self, parent, x=0, y=0, rotation=0, relative_position=True, relative_angle=False):
+	def __init__(self, parent, x=0, y=0, rotation=0, relative_position=True, relative_rotation=False):
 		self.x = x
 		self.y = y
 		self.rotation = rotation
 		self.relative_position = relative_position
-		self.relative_angle = relative_angle
+		self.relative_rotation = relative_rotation
 		self.parent = parent
+		self.children = []
 		if self.parent == None:
 			self.origin = self
 		else:
 			self.origin = self.parent.origin
-		try:
-			self.layer
-		except AttributeError:
+		if Sprite not in getmro(self.__class__):
 			self.center_x = 0
 			self.center_y = 0
 			self.angle = 0
-		self.children = []
 
 	def create(self, Object, **kwargs):
 		obj = Object(parent=self, **kwargs)
@@ -47,14 +50,14 @@ class Entity:
 		else:
 			self.center_x = self.x
 			self.center_y = self.y
-		if self.relative_angle and self.parent != self.origin:
+		if self.relative_rotation and self.parent != self.origin:
 			self.angle = self.parent.angle + self.rotation
 		else:
 			self.angle = self.rotation
 
 class Sprite(Entity, arcade.Sprite):
 	def __init__(self, sprite_filename, layer, width, height, **kwargs):
-		arcade.Sprite.__init__(self, sprite_filename)
+		arcade.Sprite.__init__(self, kwargs["parent"].origin.sprites[sprite_filename])
 		Entity.__init__(self, **kwargs)
 		self.sprite_filename = sprite_filename
 		self.width = width
@@ -104,9 +107,10 @@ class SpriteList(arcade.SpriteList):
 		self.sprite_list.insert((obj_idx), object)"""
 
 class Game(Entity, arcade.Window):
-	def __init__(self, width, height, layers=['gnd', 'gtop', 'main', 'top'], update_rate=1/60, render_scale=1, background_color=(0, 0, 0)):
+	def __init__(self, width, height, sprites_folder_path, layers=['gnd', 'gtop', 'main', 'top'], update_rate=1/60, render_scale=1, background_color=(0, 0, 0)):
 		Entity.__init__(self, parent=None)
 		arcade.Window.__init__(self, width, height)
+		self.sprites = {os.path.basename(os.path.splitext(filetype)[0]):filetype for filetype in glob.iglob(sprites_folder_path+'/**/*.png', recursive=True)}
 		self.sprite_list = SpriteList(layers=layers)
 		self.update_rate = update_rate
 		self.set_update_rate(update_rate)
@@ -130,5 +134,7 @@ class Game(Entity, arcade.Window):
 
 		for obj in self.children:
 				search_and_update(obj)
-		arcade.draw_rectangle_filled(self.width/2, self.height/2, self.width, self.height, self.background_color)
+
+		arcade.start_render()
 		self.sprite_list.draw()
+		gl.glFlush()
