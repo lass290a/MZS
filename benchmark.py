@@ -16,19 +16,19 @@ class Game(engine.Game):
 
 	def update(self, delta_time):
 		self.average_frames.append(1/delta_time)
-		if self.frame < 980:
+		if self.frame < 100:
 			world.create(Ball,
 				sprite_filename="ball1",
 				layer="main",
 				width=25,
 				height=25,
-				x=(self.frame)%screen_width,
-				y=300,
-				gravity_x=-0.1,
-				gravity_y=-0.1,
-				change_y=10,
-				change_x=10,
-				elasticity=0.7)
+				x=self.frame*10,
+				y=260,
+				gravity_x=0,
+				gravity_y=-0.5,
+				change_y=uniform(-4, 4),
+				change_x=uniform(-4, 4),
+				elasticity=0.9)
 
 	def on_close(self):
 		arcade.window_commands.close_window()
@@ -43,10 +43,11 @@ class Game(engine.Game):
 		pass
 
 	def on_key_press(self, key, modifiers):
-		print("down ", engine.key_codes[key+modifiers], key, modifiers)
+		if key == arcade.key.LSHIFT:
+			print("YO") 
 
 	def on_key_release(self, key, modifiers):
-		print("up   ", engine.key_codes[key+modifiers], key, modifiers)
+		pass
 
 class Ball(engine.Sprite):
 	def __init__(self, parent, sprite_filename, layer, width=50, height=50, x=0, y=0, change_x=0, change_y=0, gravity_x=0, gravity_y=-1, elasticity=0.9):
@@ -110,4 +111,5 @@ game = Game()
 world = game.create(engine.Entity)
 game.world = world
 
+print(arcade.window_commands.get_window().__class__)
 arcade.run()
