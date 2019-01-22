@@ -11,23 +11,30 @@ class Game(engine.Game):
 			sprites_folder_path="Sprites",
 			width=screen_width,
 			height=screen_height,
-			background_color=(0, 0, 0),)
+			background_color=(0, 0, 0))
 		self.average_frames = []
 
 	def update(self, delta_time):
 		self.average_frames.append(1/delta_time)
-		if self.frame % 23 == 0:
-			world.create(Ball, sprite_filename="ball1", layer="main", width=50, height=50, x=(self.frame*10)%screen_width, y=300, gravity_x=0.5, gravity_y=0.5, change_y=10, change_x=(self.frame*737)%31, elasticity=0.8)
-		if self.frame >= 1500:
-			print(sum(self.average_frames)/len(self.average_frames))
-			arcade.window_commands.close_window()
+		if self.frame < 980:
+			world.create(Ball,
+				sprite_filename="ball1",
+				layer="main",
+				width=25,
+				height=25,
+				x=(self.frame)%screen_width,
+				y=300,
+				gravity_x=-0.1,
+				gravity_y=-0.1,
+				change_y=10,
+				change_x=10,
+				elasticity=0.7)
 
 	def on_close(self):
 		arcade.window_commands.close_window()
 
 	def on_mouse_motion(self, x, y, dx, dy):
-		self.a = engine.pos_to_ang(x-screen_width/2, y-screen_height/2)
-		print(self.a)
+		pass
 
 	def on_mouse_press(self, x, y, button, modifiers):
 		pass
@@ -36,10 +43,10 @@ class Game(engine.Game):
 		pass
 
 	def on_key_press(self, key, modifiers):
-		pass
+		print("down ", engine.key_codes[key+modifiers], key, modifiers)
 
 	def on_key_release(self, key, modifiers):
-		pass
+		print("up   ", engine.key_codes[key+modifiers], key, modifiers)
 
 class Ball(engine.Sprite):
 	def __init__(self, parent, sprite_filename, layer, width=50, height=50, x=0, y=0, change_x=0, change_y=0, gravity_x=0, gravity_y=-1, elasticity=0.9):
@@ -58,10 +65,6 @@ class Ball(engine.Sprite):
 		self.elasticity = elasticity
 
 	def update(self):
-
-		self.gravity_x = cos(self.origin.a)/2
-		self.gravity_y = sin(self.origin.a)/2
-
 		self.change_x += self.gravity_x
 		self.change_y += self.gravity_y
 		self.x += self.change_x
