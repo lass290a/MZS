@@ -29,7 +29,7 @@ class Game(engine.Game):
 			pass
 
 	def update(self, delta_time):
-		print(self.held_keys)		
+		pass
 
 class Player(engine.Sprite):
 	def __init__(self, parent, x, y):
@@ -66,10 +66,10 @@ class Arm(engine.Sprite):
 		super().__init__(parent=parent,
 			sprite=sprite,
 			layer="main",
-			width=100,
-			height=30)
-
-
+			width=250,
+			height=250,
+			x=5,
+			y=-35,)
 
 game = Game(1280, 720)
 game.world = game.create(engine.Entity)

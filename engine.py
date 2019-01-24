@@ -34,10 +34,10 @@ class Entity:
 	def create(self, Object, **kwargs):
 		obj = Object(parent=self, **kwargs)
 		self.children.append(obj)
-		try:
+		"""try:
 			self.origin.sprite_list.insert(obj)
 		except AttributeError:
-			pass
+			pass"""
 		return obj
 
 	def find(self, condition=lambda x:x, **kwargs):
@@ -85,6 +85,7 @@ class Sprite(Entity, arcade.Sprite):
 				return None
 		
 		self.overlap_parent = find_overlap_parent(self.parent)
+		self.origin.sprite_list.insert(self)
 
 class SpriteList(arcade.SpriteList):
 	def __init__(self, layers):
@@ -92,13 +93,14 @@ class SpriteList(arcade.SpriteList):
 		self.layerIndicies = {layer:0 for layer in layers}
 
 	def insert(self, obj):
-		print("YEEEEEET")
+		print(obj, self.sprite_list)
 		if obj.overlap_parent != None:
 			self.sprite_list.insert(self.sprite_list.index(obj.overlap_parent)+1, obj)
 		else:
 			self.sprite_list.insert(self.layerIndicies[obj.layer], obj)
 		for layer in list(self.layerIndicies.keys())[list(self.layerIndicies.keys()).index(obj.layer):]:
 			self.layerIndicies[layer] += 1
+		print(self.layerIndicies)
 
 	def remove(self, obj):
 		self.sprite_list.remove(obj)
