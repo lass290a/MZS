@@ -38,12 +38,12 @@ class Game(engine.Game):
 class Player(engine.Sprite):
 	def __init__(self, x, y, parent):
 		super().__init__(parent=parent,
-			sprite_filename='body',
+			sprite='body',
 			layer='main',
 			x=game.screen_res[0]/2,
 			y=game.screen_res[1]/2,
-			width=50,
-			height=50)
+			width=75,
+			height=75)
 		self.vectorx=0
 		self.vectory=0
 		self.pointx=0
@@ -79,7 +79,7 @@ class Player(engine.Sprite):
 class Puppet(engine.Sprite):
 	def __init__(self, parent, username='', x=0, y=0, angle=0, targetFired=0):
 		super().__init__(
-			sprite_filename='body',
+			sprite='body',
 			size=0.33,
 			x=x,
 			y=y,
@@ -119,10 +119,10 @@ class Weapon1Arm(engine.Sprite):
 	def __init__(self, side, parent):
 		self.side=[-1, 1][side=='armright']
 		super().__init__(parent=parent,
-			sprite_filename=side,
+			sprite=side,
 			layer='main',
-			width=100,
-			height=100,
+			width=200,
+			height=200,
 			relative_position=True,
 			relative_rotation=True,
 			x=0,
@@ -148,9 +148,9 @@ class Head(engine.Sprite):
 	def __init__(self, parent):
 		super().__init__(
 			parent=parent,
-			sprite_filename='head',
-			width=25,
-			height=25,
+			sprite='head',
+			width=80,
+			height=80,
 			layer='main',
 			relative_position=True,
 			relative_rotation=True)
@@ -159,8 +159,10 @@ class Muzzleflash(engine.Sprite):
 	def __init__(self, parent):
 		super().__init__(
 			sprite='flash',
-			size=1.2,
+			width=70,
+			height=70,
 			parent=parent,
+			layer='main',
 			x=parent.center_x+cos(radians(parent.rotation))*85+cos(radians(parent.rotation+90))*-10*parent.side,
 			y=parent.center_y+sin(radians(parent.rotation))*85+sin(radians(parent.rotation+90))*-10*parent.side)
 		self.rotation=self.parent.rotation
@@ -171,10 +173,67 @@ class Muzzleflash(engine.Sprite):
 		if self.destructTimer==3:
 			self.delete()
 
+class Wall(engine.Sprite):
+	def __init__(self, parent, x=0, y=0, rotation=0, texture='Wall_Wood_01'):
+		super().__init__(
+			sprite=texture,
+			width=width,
+			height=height,
+			x=x,
+			y=y,
+			rotation=rotation,
+			parent=parent,
+			layer='gtop',
+			relative_rotation=True,
+			relative_position=True)
+
+class Ground(engine.Sprite):
+	def __init__(self, parent, x=0, y=0, rotation=0, width=50, texture='Grass_01'):
+		super().__init__(
+			sprite=texture,
+			width=256,
+			height=256,
+			x=x,
+			y=y,
+			rotation=rotation,
+			parent=parent,
+			layer='gnd',
+			relative_rotation=True,
+			relative_position=True)
+
+class Car(engine.Sprite):
+	def __init__(self, parent, x=0, y=0, rotation=0, width=50, height=50):
+		super().__init__(
+			sprite='Red_Car_01',
+			width=width,
+			height=height,
+			x=x,
+			y=y,
+			rotation=rotation,
+			parent=parent,
+			layer='gtop',
+			relative_rotation=True,
+			relative_position=True) 
+
+class Rock(engine.Sprite):
+	def __init__(self, parent, x=0, y=0, rotation=0, width=50, height=50):
+		super().__init__(
+			sprite='stone',
+			width=width,
+			height=height,
+			x=x,
+			y=y,
+			rotation=rotation,
+			parent=parent,
+			layer='gtop',
+			relative_rotation=True,
+			relative_position=True)
+
 
 game = Game(screen_res=(1280,720))
 game.world = game.create(engine.Entity)
 game.world.player = game.world.create(Player, x=0, y=0)
+game.world.ground = game.world.create(Ground, x=512, y=512)
 
 
 arcade.run()
