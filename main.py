@@ -25,8 +25,6 @@ class Game(engine.Game):
 		if button == arcade.MOUSE_BUTTON_LEFT:
 			if 'player' in dir(self):
 				self.player.weapon1.fire()
-		#if self.hand != None:
-		#	self.create(self.hand.__class__, X=x, Y=y)
 
 	def on_key_press(self, key, modifiers):
 		if not chr(key) in self.heldKeys:
@@ -48,30 +46,33 @@ class Player(engine.Sprite):
 		self.vectory=0
 		self.pointx=0
 		self.pointy=0
-		self.deaccel=1.4
-		self.accel=2
+		self.deaccel=1.2
+		self.accel=0.5
 		self.pointPos = (0, 0)
 		self.mousePos = (0, 0)
 		self.weapon1 = self.create(Weapon1, targetFired=0)
 		self.head = self.create(Head)
 		self.health = 100
-		self.health_check = 100
-		self.dead = False
 
 	def update(self):
-		if self.health < self.health_check:
-			self.game.overlay.create(Tint, width=self.game.world.screenWidth, height=self.game.world.screenHeight)
-			self.health_check = self.health
+		print([self.x, self.y])
 
-		if self.health > self.health_check:
-			self.game.overlay.create(Tint, width=self.game.world.screenWidth, height=self.game.world.screenHeight, texture='green_tint')
-			self.health_check = self.health
+		if 'a' in game.heldKeys:
+			self.vectorx-=self.accel
+		if 'd' in game.heldKeys:
+			self.vectorx+=self.accel
+		if 's' in game.heldKeys:
+			self.vectory-=self.accel
+		if 'w' in game.heldKeys:
+			self.vectory+=self.accel
 
-		self.vectorx /=self.deaccel
-		self.vectory /=self.deaccel
-		self.x+=self.vectorx
-		self.y+=self.vectory
-		self.pointPos=[[self.center_x, self.center_y][i] - self.parent.parent.mousePos[i] for i in range(2)]
+		self.vectorx /= self.deaccel
+		self.vectory /= self.deaccel
+
+		self.x += round(self.vectorx, 5)
+		self.y += round(self.vectory, 5)
+
+		self.pointPos=[[self.center_x, self.center_y][i] - game.mousePos[i] for i in range(2)]
 		try:self.rotation = engine.pos_to_ang(self.pointPos[0], self.pointPos[1])
 		except ZeroDivisionError:
 			pass
