@@ -9,29 +9,6 @@ class Game(engine.Game):
 			height=screen_res[1],
 			background_color=(50, 50, 50))
 		self.screen_res=screen_res
-		self.mousePos = (0, 0)
-		self.heldKeys=[]
-
-	def start_focus(self):
-		pass
-
-	def stop_focus(self):
-		self.heldKeys = []
-
-	def on_mouse_motion(self, x, y, dx, dy):
-		self.mousePos = (x, y)
-
-	def on_mouse_press(self, x, y, button, modifiers):
-		if button == arcade.MOUSE_BUTTON_LEFT:
-			if 'player' in dir(self):
-				self.player.weapon1.fire()
-
-	def on_key_press(self, key, modifiers):
-		if not chr(key) in self.heldKeys:
-			self.heldKeys.append(chr(key))
-
-	def on_key_release(self, key, modifiers):
-		del self.heldKeys[self.heldKeys.index(chr(key))]
 
 class Player(engine.Sprite):
 	def __init__(self, x, y, parent):
@@ -54,16 +31,14 @@ class Player(engine.Sprite):
 		self.head = self.create(Head)
 		self.health = 100
 
-	def update(self):
-		print([self.x, self.y])
-
-		if 'a' in game.heldKeys:
+	def event_update(self):
+		if 'a' in engine.held_keys:
 			self.vectorx-=self.accel
-		if 'd' in game.heldKeys:
+		if 'd' in engine.held_keys:
 			self.vectorx+=self.accel
-		if 's' in game.heldKeys:
+		if 's' in engine.held_keys:
 			self.vectory-=self.accel
-		if 'w' in game.heldKeys:
+		if 'w' in engine.held_keys:
 			self.vectory+=self.accel
 
 		self.vectorx /= self.deaccel
@@ -72,7 +47,7 @@ class Player(engine.Sprite):
 		self.x += round(self.vectorx, 5)
 		self.y += round(self.vectory, 5)
 
-		self.pointPos=[[self.center_x, self.center_y][i] - game.mousePos[i] for i in range(2)]
+		self.pointPos=[[self.center_x, self.center_y][i] - (engine.mouse.x, engine.mouse.y)[i] for i in range(2)]
 		try:self.rotation = engine.pos_to_ang(self.pointPos[0], self.pointPos[1])
 		except ZeroDivisionError:
 			pass
@@ -86,7 +61,7 @@ class Puppet(engine.Sprite):
 			y=y,
 			Angle=angle,
 			parent=parent,
-			relPosition=True)
+			relative_position=True)
 		self.weapon1 = self.create(Weapon1, targetFired=targetFired)
 		self.head = self.create(Head)
 		self.username = username
@@ -110,7 +85,7 @@ class Weapon1(engine.Entity):
 		self.weaponClk = not self.weaponClk
 		self.children[self.weaponClk].fire()
 
-	def update(self):
+	def event_update(self):
 		if self.parent.__class__.__name__ == 'Puppet':
 			if self.fired < self.targetFired:
 				self.fired+=1
@@ -135,11 +110,11 @@ class Weapon1Arm(engine.Sprite):
 		self.shootRotation+=uniform(15, 25)*[-1, 1][bool(getrandbits(1))]
 		self.create(Muzzleflash)
 
-	def update(self):
+	def event_update(self):
 		self.shootRotation /= 1.2
 		if self.parent.parent.__class__.__name__ == 'Player':
 			self.pointPos=[[self.center_x, self.center_y][i] - self.parent.parent.mousePos[i] for i in range(2)]
-			try: self.rotation=engine.pos_to_ang(self.pointPos[0], self.pointPos[1])+self.shootRotation+self.side*3
+			try: self.rotation=engine.pos_to_aeng(self.pointPos[0], self.pointPos[1])+self.shootRotation+self.side*3
 			except ZeroDivisionError:
 				pass
 		else:
@@ -169,7 +144,7 @@ class Muzzleflash(engine.Sprite):
 		self.rotation=self.parent.rotation
 		self.destructTimer=0
 
-	def update(self):
+	def event_update(self):
 		self.destructTimer+=1
 		if self.destructTimer==3:
 			self.delete()
