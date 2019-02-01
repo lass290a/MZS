@@ -28,6 +28,7 @@ class Entity:
 		self.relative_rotation = relative_rotation
 		self.parent = parent
 		self.children = []
+		self.exists = True
 		if self.parent == None:
 			self.origin = self
 		else:
@@ -53,6 +54,7 @@ class Entity:
 			if Sprite in getmro(self.__class__):
 				self.origin.sprite_list.remove(self)
 				self.kill()
+			self.exists = False
 
 	def determine_orientation(self):
 		if self.relative_position and self.parent != self.origin:
@@ -147,7 +149,7 @@ class Game(Entity, arcade.Window):
 		if "event_mouse_release" in dir(self): self.event_mouse_release(x, y, button, modifiers)
 
 	def on_key_press(self, key, modifiers):
-		if not chr(key) in held_keys:
+		if not key_codes[key] in held_keys:
 			held_keys.append(key_codes[key])
 		if "event_key_press" in dir(self): self.event_key_press(key, modifiers)
 
