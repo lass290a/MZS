@@ -7,6 +7,7 @@ class Game(engine.Game):
 			sprites_folder_path="Sprites",
 			width=screen_res[0],
 			height=screen_res[1],
+			layers=['gnd', 'gtop', 'main', 'top'],
 			background_color=(50, 50, 50))
 		self.screen_res=screen_res
 
@@ -53,13 +54,13 @@ class Player(engine.Sprite):
 			pass
 
 class Puppet(engine.Sprite):
-	def __init__(self, parent, username='', x=0, y=0, angle=0, targetFired=0):
+	def __init__(self, parent, username='', x=0, y=0, rotation=0, targetFired=0):
 		super().__init__(
 			sprite='body',
 			size=0.33,
 			x=x,
 			y=y,
-			Angle=angle,
+			rotation=rotation,
 			parent=parent,
 			relative_position=True)
 		self.weapon1 = self.create(Weapon1, targetFired=targetFired)
@@ -100,7 +101,7 @@ class Weapon1Arm(engine.Sprite):
 			width=200,
 			height=200,
 			relative_position=True,
-			relative_rotation=True,
+			relative_rotation=False,
 			x=0,
 			y=30*self.side)
 		self.shootRotation=0
@@ -113,12 +114,14 @@ class Weapon1Arm(engine.Sprite):
 	def event_update(self):
 		self.shootRotation /= 1.2
 		if self.parent.parent.__class__.__name__ == 'Player':
-			self.pointPos=[[self.center_x, self.center_y][i] - self.parent.parent.mousePos[i] for i in range(2)]
-			try: self.rotation=engine.pos_to_aeng(self.pointPos[0], self.pointPos[1])+self.shootRotation+self.side*3
+			self.pointPos=[[self.center_x, self.center_y][i] - (engine.mouse.x, engine.mouse.y)[i] for i in range(2)]
+			try:self.rotation = engine.pos_to_ang(self.pointPos[0], self.pointPos[1])
 			except ZeroDivisionError:
 				pass
 		else:
 			self.rotation = self.tempRotation + self.shootRotation
+
+
 
 class Head(engine.Sprite):
 	def __init__(self, parent):

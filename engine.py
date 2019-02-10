@@ -28,6 +28,7 @@ class Entity:
 		self.relative_rotation = relative_rotation
 		self.parent = parent
 		self.children = []
+		self.angle = 0
 		self.exists = True
 		if self.parent == None:
 			self.origin = self
@@ -36,7 +37,7 @@ class Entity:
 		if Sprite not in getmro(self.__class__):
 			self.center_x = 0
 			self.center_y = 0
-			self.angle = 0
+			self.rotation = 0
 
 	def create(self, Object, **kwargs):
 		obj = Object(parent=self, **kwargs)
@@ -57,17 +58,19 @@ class Entity:
 			self.exists = False
 
 	def determine_orientation(self):
-		if self.relative_position and self.parent != self.origin:
-			self.center_x = self.parent.center_x+(cos(radians(self.parent.rotation))*self.x*self.origin.render_scale+cos(radians(self.parent.rotation+90))*self.y*self.origin.render_scale)
-			self.center_y = self.parent.center_y+(sin(radians(self.parent.rotation))*self.x*self.origin.render_scale+sin(radians(self.parent.rotation+90))*self.y*self.origin.render_scale)
-		else:
-			self.center_x = self.x
-			self.center_y = self.y
-			print(self, "-->", self.center_x)
 		if self.relative_rotation and self.parent != self.origin:
 			self.angle = self.parent.angle + self.rotation
 		else:
 			self.angle = self.rotation
+
+		if self.relative_position and self.parent != self.origin:
+			print(self, self.parent.angle)
+			self.center_x = self.parent.center_x+(cos(radians(self.parent.angle))*self.x*self.origin.render_scale+cos(radians(self.parent.angle+90))*self.y*self.origin.render_scale)
+			self.center_y = self.parent.center_y+(sin(radians(self.parent.angle))*self.x*self.origin.render_scale+sin(radians(self.parent.angle+90))*self.y*self.origin.render_scale)
+		else:
+			self.center_x = self.x
+			self.center_y = self.y
+
 
 class Sprite(Entity, arcade.Sprite):
 	def __init__(self, sprite, layer, width, height, **kwargs):
@@ -149,6 +152,7 @@ class Game(Entity, arcade.Window):
 		if "event_mouse_release" in dir(self): self.event_mouse_release(x, y, button, modifiers)
 
 	def on_key_press(self, key, modifiers):
+		print(key_codes[key])
 		if not key_codes[key] in held_keys:
 			held_keys.append(key_codes[key])
 		if "event_key_press" in dir(self): self.event_key_press(key, modifiers)
@@ -163,7 +167,6 @@ class Game(Entity, arcade.Window):
 
 	def on_draw(self):
 		self.frame += 1
-		
 		def search_and_update(origin):
 			try:
 				origin.event_update()
