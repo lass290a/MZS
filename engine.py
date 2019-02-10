@@ -58,28 +58,37 @@ class Entity:
 			self.exists = False
 
 	def determine_orientation(self):
-		if self.relative_rotation and self.parent != self.origin:
-			self.angle = self.parent.angle + self.rotation
-		else:
-			self.angle = self.rotation
 
 		if self.relative_position and self.parent != self.origin:
-			print(self, self.parent.angle)
 			self.center_x = self.parent.center_x+(cos(radians(self.parent.angle))*self.x*self.origin.render_scale+cos(radians(self.parent.angle+90))*self.y*self.origin.render_scale)
 			self.center_y = self.parent.center_y+(sin(radians(self.parent.angle))*self.x*self.origin.render_scale+sin(radians(self.parent.angle+90))*self.y*self.origin.render_scale)
 		else:
 			self.center_x = self.x
 			self.center_y = self.y
 
+		if Sprite in getmro(self.__class__):			
+			x = self.width*self.align[0]*0.5
+			y = self.height*self.align[1]*0.5
+			print(self.width, self.height, self.center_x, self.center_y)
+			self.center_x += x
+			self.center_y += y
+
+		if self.relative_rotation and self.parent != self.origin:
+			self.angle = self.parent.angle + self.rotation
+		else:
+			self.angle = self.rotation
+
+
 
 class Sprite(Entity, arcade.Sprite):
-	def __init__(self, sprite, layer, width, height, **kwargs):
+	def __init__(self, sprite, layer, width, height, align=[0, 0], **kwargs):
 		arcade.Sprite.__init__(self, kwargs["parent"].origin.sprites[sprite])
 		Entity.__init__(self, **kwargs)
 		self.sprite = sprite
 		self.width = width
 		self.height = height
 		self.layer = layer
+		self.align = align
 
 		def find_overlap_parent(obj):
 			if Sprite in getmro(obj.__class__):
@@ -152,7 +161,6 @@ class Game(Entity, arcade.Window):
 		if "event_mouse_release" in dir(self): self.event_mouse_release(x, y, button, modifiers)
 
 	def on_key_press(self, key, modifiers):
-		print(key_codes[key])
 		if not key_codes[key] in held_keys:
 			held_keys.append(key_codes[key])
 		if "event_key_press" in dir(self): self.event_key_press(key, modifiers)

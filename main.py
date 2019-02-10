@@ -19,17 +19,18 @@ class Player(engine.Sprite):
 			x=game.screen_res[0]/2,
 			y=game.screen_res[1]/2,
 			width=75,
-			height=75)
+			height=75,
+			align=[0, 0])
 		self.vectorx=0
 		self.vectory=0
 		self.pointx=0
 		self.pointy=0
 		self.deaccel=1.2
 		self.accel=0.5
-		self.pointPos = (0, 0)
-		self.mousePos = (0, 0)
+		self.point_pos = (0, 0)
 		self.weapon1 = self.create(Weapon1, targetFired=0)
 		self.head = self.create(Head)
+		self.create(Box)
 		self.health = 100
 
 	def event_update(self):
@@ -48,8 +49,8 @@ class Player(engine.Sprite):
 		self.x += round(self.vectorx, 5)
 		self.y += round(self.vectory, 5)
 
-		self.pointPos=[[self.center_x, self.center_y][i] - (engine.mouse.x, engine.mouse.y)[i] for i in range(2)]
-		try:self.rotation = engine.pos_to_ang(self.pointPos[0], self.pointPos[1])
+		self.point_pos=[[self.center_x, self.center_y][i] - (engine.mouse.x, engine.mouse.y)[i] for i in range(2)]
+		try:self.rotation = engine.pos_to_ang(self.point_pos[0], self.point_pos[1])
 		except ZeroDivisionError:
 			pass
 
@@ -114,14 +115,26 @@ class Weapon1Arm(engine.Sprite):
 	def event_update(self):
 		self.shootRotation /= 1.2
 		if self.parent.parent.__class__.__name__ == 'Player':
-			self.pointPos=[[self.center_x, self.center_y][i] - (engine.mouse.x, engine.mouse.y)[i] for i in range(2)]
-			try:self.rotation = engine.pos_to_ang(self.pointPos[0], self.pointPos[1])
+			self.point_pos=[[self.center_x, self.center_y][i] - (engine.mouse.x, engine.mouse.y)[i] for i in range(2)]
+			try:self.rotation = engine.pos_to_ang(self.point_pos[0], self.point_pos[1])
 			except ZeroDivisionError:
 				pass
 		else:
 			self.rotation = self.tempRotation + self.shootRotation
 
 
+class Box(engine.Sprite):
+	def __init__(self, parent):
+		super().__init__(parent=parent,
+			sprite="box",
+			layer='main',
+			width=200,
+			height=200,
+			relative_position=True,
+			relative_rotation=False,
+			x=0,
+			y=0,
+			align=[-1, -1])
 
 class Head(engine.Sprite):
 	def __init__(self, parent):
