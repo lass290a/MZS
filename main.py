@@ -1,5 +1,7 @@
 import engine
 import arcade
+import multiplayer
+import threading
 
 class Game(engine.Game):
 	def __init__(self, screen_res=(1280,720)):
@@ -30,8 +32,9 @@ class Player(engine.Sprite):
 		self.point_pos = (0, 0)
 		self.weapon1 = self.create(Weapon1, targetFired=0)
 		self.head = self.create(Head)
-		self.create(Box)
+		#self.create(Box)
 		self.health = 100
+		self.username = 'Placeholder'
 
 	def event_update(self):
 		if 'a' in engine.held_keys:
@@ -221,11 +224,76 @@ class Rock(engine.Sprite):
 			relative_rotation=True,
 			relative_position=True)
 
+class Server(threading.Thread):
+	def __init__(self):
+		threading.Thread.__init__(self)
+		self.recv = eval(nc.sendData(str({'connection':{'username':player.username}})))
+		self.online = True
+		if 'connection' in list(self.recv.keys()) and self.recv['connection'] == 'disconnect':
+			self.fail('User is already online')
+		player.X, player.Y = self.recv['connection']['position']
+		self.mainloop()
+		
+	def post_request(self):
+		delivery_content = {'player_data':{'position':(round(player.X, 2), round(player.Y, 2)), 'angle':round(player.Angle, 2), 'targetFired': player.weapon1.targetFired}}
+		if game.respawn == True and player.health<=0:
+			delivery_content['player_data']['dead'] = False
+			game.respawn = False
+		self.recv = eval(nc.sendData(str(delivery_content)))
+
+	def puppet_controller(self):
+		oldPuppetList = sorted([puppet.username for puppet in game.world.find("Puppet")])
+		newPuppetList = sorted(self.recv['player_data'].keys())
+		disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
+		joinedList = list(set(newPuppetList)-set(oldPuppetList))
+
+		for puppet in disconnectedList:
+			puppet.delete()
+
+		for puppet in game.world.find('Puppet'):
+			puppet.X, puppet.Y = self.recv['player_data'][puppet.username]['position']
+			puppet.Angle = self.recv['player_data'][puppet.username]['angle']
+			puppet.weapon1.rightarm.tempAngle = self.recv['player_data'][puppet.username]['angle']
+			puppet.weapon1.leftarm.tempAngle = self.recv['player_data'][puppet.username]['angle']
+			puppet.weapon1.targetFired = self.recv['player_data'][puppet.username]['targetFired']
+		
+		for puppet in joinedList:
+			self.recv['player_data'][puppet]['X'],self.recv['player_data'][puppet]['Y'] = self.recv['player_data'][puppet]['position']
+			del self.recv['player_data'][puppet]['position']
+			world.create(Puppet, username=puppet, **self.recv['player_data'][puppet])
+			world.children[-1].weapon1.rightarm.tempAngle = self.recv['player_data'][puppet]['angle']
+			world.children[-1].weapon1.leftarm.tempAngle = self.recv['player_data'][puppet]['angle']
+			world.children[-1].weapon1.targetFired = self.recv['player_data'][puppet]['targetFired']
+	
+	def player_data(self):
+		if player.health != self.recv['self_data']['health']:
+			player.health = self.recv['self_data']['health']
+		if 'position' in self.recv['self_data']:
+			player.X, player.Y = self.recv['self_data']['position']
+		if 'dead' in self.recv['self_data']:
+			player.dead = self.recv['self_data']['dead']
+
+	def fail(self, e):
+		print(e)
+		self.online = False
+		exit()
+
+	def mainloop(self):
+		while self.online:
+			self.post_request()
+			self.puppet_controller()
+			self.player_data()
+		exit()
 
 game = Game(screen_res=(1280,720))
-game.world = game.create(engine.Entity)
-game.world.player = game.world.create(Player, x=0, y=0)
-game.world.ground = game.world.create(Ground, x=512, y=512)
+world = game.create(engine.Entity)
+player = world.create(Player, x=0, y=0)
+test = world.create(Ground, x=512, y=512)
 
+
+serverAddress = ('localhost', 4422)
+
+nc = multiplayer.NetworkClient(1, Server)
+nc.establishConnection(*serverAddress)
 
 arcade.run()
