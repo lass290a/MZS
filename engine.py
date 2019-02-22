@@ -69,7 +69,6 @@ class Entity:
 		if Sprite in getmro(self.__class__):			
 			x = self.width*self.align[0]*0.5
 			y = self.height*self.align[1]*0.5
-			print(self.width, self.height, self.center_x, self.center_y)
 			self.center_x += x
 			self.center_y += y
 

@@ -2,6 +2,7 @@ import engine
 import arcade
 import multiplayer
 import threading
+from time import sleep
 
 class Game(engine.Game):
 	def __init__(self, screen_res=(1280,720)):
@@ -13,13 +14,18 @@ class Game(engine.Game):
 			background_color=(50, 50, 50))
 		self.screen_res=screen_res
 
+		self.world = self.create(engine.Entity)
+		self.world.player = self.world.create(Player, x=0, y=0)
+		self.test_ground = self.world.create(Ground, x=512, y=512)
+
+
 class Player(engine.Sprite):
 	def __init__(self, x, y, parent):
 		super().__init__(parent=parent,
 			sprite='body',
 			layer='main',
-			x=game.screen_res[0]/2,
-			y=game.screen_res[1]/2,
+			x=parent.parent.screen_res[0]/2,
+			y=parent.parent.screen_res[1]/2,
 			width=75,
 			height=75,
 			align=[0, 0])
@@ -61,11 +67,15 @@ class Puppet(engine.Sprite):
 	def __init__(self, parent, username='', x=0, y=0, rotation=0, targetFired=0):
 		super().__init__(
 			sprite='body',
-			size=0.33,
+			layer='main',
+			width=75,
+			height=75,
+			align=[0, 0],
 			x=x,
 			y=y,
 			rotation=rotation,
 			parent=parent,
+			relative_rotation=True,
 			relative_position=True)
 		self.weapon1 = self.create(Weapon1, targetFired=targetFired)
 		self.head = self.create(Head)
@@ -226,23 +236,27 @@ class Rock(engine.Sprite):
 
 class Server(threading.Thread):
 	def __init__(self):
-		threading.Thread.__init__(self)
+		print('start')
+		super().__init__(group=None, target=None, name=None, kwargs=None)
 		self.recv = eval(nc.sendData(str({'connection':{'username':player.username}})))
+		print(self)
 		self.online = True
 		if 'connection' in list(self.recv.keys()) and self.recv['connection'] == 'disconnect':
 			self.fail('User is already online')
-		player.X, player.Y = self.recv['connection']['position']
+		player.x, player.y = self.recv['connection']['position']
 		self.mainloop()
+	def run(self):
+		pass
 		
 	def post_request(self):
-		delivery_content = {'player_data':{'position':(round(player.X, 2), round(player.Y, 2)), 'angle':round(player.Angle, 2), 'targetFired': player.weapon1.targetFired}}
-		if game.respawn == True and player.health<=0:
+		delivery_content = {'player_data':{'position':(round(player.x, 2), round(player.y, 2)), 'angle':round(player.rotation, 2), 'targetFired': player.weapon1.targetFired}}
+		if player.health <= 0:
 			delivery_content['player_data']['dead'] = False
-			game.respawn = False
 		self.recv = eval(nc.sendData(str(delivery_content)))
+		print(self.recv)
 
 	def puppet_controller(self):
-		oldPuppetList = sorted([puppet.username for puppet in game.world.find("Puppet")])
+		oldPuppetList = sorted([puppet.username for puppet in game.world.find(type, Puppet)])
 		newPuppetList = sorted(self.recv['player_data'].keys())
 		disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
 		joinedList = list(set(newPuppetList)-set(oldPuppetList))
@@ -285,15 +299,11 @@ class Server(threading.Thread):
 			self.player_data()
 		exit()
 
-game = Game(screen_res=(1280,720))
-world = game.create(engine.Entity)
-player = world.create(Player, x=0, y=0)
-test = world.create(Ground, x=512, y=512)
 
-
-serverAddress = ('localhost', 4422)
-
-nc = multiplayer.NetworkClient(1, Server)
-nc.establishConnection(*serverAddress)
-
-arcade.run()
+if __name__ == '__main__':
+	game = Game(screen_res=(1280,720))
+	player = game.world.player
+	serverAddress = ('localhost', 4422)
+	nc = multiplayer.NetworkClient(1, Server)
+	nc.establishConnection(*serverAddress).start()
+	game.start()

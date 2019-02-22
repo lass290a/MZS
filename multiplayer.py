@@ -49,13 +49,15 @@ class NetworkClient:
 		self.callback = callback
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.settimeout(timeout)
+		self.cb_instance = None
 
 	def establishConnection(self, ip_address, port_nr):
 		try:
 			self.sock.connect((ip_address, port_nr))
-			self.callback()
+			self.cb_instance = self.callback()
+			return self.cb_instance
 		except Exception as errormsg:
-			self.callback().fail(errormsg)
+			self.cb_instance.fail(errormsg)
 
 	def sendData(self, strdata):
 		try:
