@@ -16,16 +16,23 @@ class Game(engine.Game):
 
 		self.world = self.create(engine.Entity)
 		self.world.player = self.world.create(Player, x=0, y=0)
-		self.test_ground = self.world.create(Ground, x=512, y=512)
+		self.world.test_ground = self.world.create(Ground, x=512, y=512)
+		
+		self.camera = self.world.player
 
+	def event_close(self):
+		server.fail('Game Closed')
+
+	def event_update(self, delta_time):
+		self.world.x, self.world.y = (-self.camera.x)+self.screen_res[0]//2, (-self.camera.y)+self.screen_res[1]//2
 
 class Player(engine.Sprite):
 	def __init__(self, x, y, parent):
 		super().__init__(parent=parent,
 			sprite='body',
 			layer='main',
-			x=parent.parent.screen_res[0]/2,
-			y=parent.parent.screen_res[1]/2,
+			x=0,
+			y=0,
 			width=75,
 			height=75,
 			align=[0, 0])
@@ -234,29 +241,60 @@ class Rock(engine.Sprite):
 			relative_rotation=True,
 			relative_position=True)
 
+class Chunk(Object):
+	def __init__(self, parent, x, y, width=256, height=256):
+		super().__init__(
+			x=x,
+			y=y,
+			layer='gnd',
+			relative_rotation=True,
+			relative_position=True)
+
+class ChunkContainer(engine.Entity):
+	def __init__(self, parent, raw_map, x=0, y=0):
+		self.map_name = raw_map['world_name']
+		self.map = raw_map['world_data']
+		self.chunk_size = raw_map['chunk_size']
+		self.current_player_chunk = ''
+		self.rendered_chunks = {}
+
+	def event_update(self):
+		player_chunk = str((int(player.X//self.chunk_size), int(player.Y//self.chunk_size))).replace(' ','')
+		if self.current_player_chunk != player_chunk:
+			surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
+			
+			for chunk_name in surrounding_chunk_names:
+				if chunk_name in self.map and chunk_name not in self.rendered_chunks:
+					self.rendered_chunks[chunk_name] = game.world.chunks.create(Chunk, name=chunk_name, chunk_size=self.chunk_size, debug=self.debug)
+					for obj in self.map[chunk_name]:
+						self.rendered_chunks[chunk_name].create(**obj)
+
+			for chunk in list(self.rendered_chunks):
+				if chunk not in surrounding_chunk_names:
+					self.rendered_chunks[chunk].delete()
+					del self.rendered_chunks[chunk]
+
+			self.current_player_chunk = player_chunk
+
 class Server(threading.Thread):
 	def __init__(self):
-		print('start')
-		super().__init__(group=None, target=None, name=None, kwargs=None)
+		super().__init__(target=self.mainloop)
 		self.recv = eval(nc.sendData(str({'connection':{'username':player.username}})))
-		print(self)
+		
 		self.online = True
 		if 'connection' in list(self.recv.keys()) and self.recv['connection'] == 'disconnect':
 			self.fail('User is already online')
 		player.x, player.y = self.recv['connection']['position']
-		self.mainloop()
-	def run(self):
-		pass
+		self.start()
 		
 	def post_request(self):
 		delivery_content = {'player_data':{'position':(round(player.x, 2), round(player.y, 2)), 'angle':round(player.rotation, 2), 'targetFired': player.weapon1.targetFired}}
 		if player.health <= 0:
 			delivery_content['player_data']['dead'] = False
 		self.recv = eval(nc.sendData(str(delivery_content)))
-		print(self.recv)
 
 	def puppet_controller(self):
-		oldPuppetList = sorted([puppet.username for puppet in game.world.find(type, Puppet)])
+		oldPuppetList = sorted([puppet.username for puppet in game.world.find(obj_type='Puppet')])
 		newPuppetList = sorted(self.recv['player_data'].keys())
 		disconnectedList = list(set(oldPuppetList)-set(newPuppetList))
 		joinedList = list(set(newPuppetList)-set(oldPuppetList))
@@ -264,15 +302,15 @@ class Server(threading.Thread):
 		for puppet in disconnectedList:
 			puppet.delete()
 
-		for puppet in game.world.find('Puppet'):
-			puppet.X, puppet.Y = self.recv['player_data'][puppet.username]['position']
-			puppet.Angle = self.recv['player_data'][puppet.username]['angle']
+		for puppet in game.world.find(obj_type='Puppet'):
+			puppet.x, puppet.y = self.recv['player_data'][puppet.username]['position']
+			puppet.rotation = self.recv['player_data'][puppet.username]['angle']
 			puppet.weapon1.rightarm.tempAngle = self.recv['player_data'][puppet.username]['angle']
 			puppet.weapon1.leftarm.tempAngle = self.recv['player_data'][puppet.username]['angle']
 			puppet.weapon1.targetFired = self.recv['player_data'][puppet.username]['targetFired']
 		
 		for puppet in joinedList:
-			self.recv['player_data'][puppet]['X'],self.recv['player_data'][puppet]['Y'] = self.recv['player_data'][puppet]['position']
+			self.recv['player_data'][puppet]['x'],self.recv['player_data'][puppet]['y'] = self.recv['player_data'][puppet]['position']
 			del self.recv['player_data'][puppet]['position']
 			world.create(Puppet, username=puppet, **self.recv['player_data'][puppet])
 			world.children[-1].weapon1.rightarm.tempAngle = self.recv['player_data'][puppet]['angle']
@@ -283,7 +321,7 @@ class Server(threading.Thread):
 		if player.health != self.recv['self_data']['health']:
 			player.health = self.recv['self_data']['health']
 		if 'position' in self.recv['self_data']:
-			player.X, player.Y = self.recv['self_data']['position']
+			player.x, player.y = self.recv['self_data']['position']
 		if 'dead' in self.recv['self_data']:
 			player.dead = self.recv['self_data']['dead']
 
@@ -305,5 +343,5 @@ if __name__ == '__main__':
 	player = game.world.player
 	serverAddress = ('localhost', 4422)
 	nc = multiplayer.NetworkClient(1, Server)
-	nc.establishConnection(*serverAddress).start()
+	server = nc.establishConnection(*serverAddress)
 	game.start()

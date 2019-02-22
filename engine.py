@@ -44,7 +44,7 @@ class Entity:
 		self.children.append(obj)
 		return obj
 
-	def find(self, condition=lambda x:x, **kwargs):
+	def find(self, condition=lambda child, obj_type:obj_type in getmro(child.__class__), **kwargs):
 		return [child for child in self.children if condition(child, **kwargs)]
 
 	def delete(self):
@@ -76,8 +76,6 @@ class Entity:
 			self.angle = self.parent.angle + self.rotation
 		else:
 			self.angle = self.rotation
-
-
 
 class Sprite(Entity, arcade.Sprite):
 	def __init__(self, sprite, layer, width, height, align=[0, 0], **kwargs):
