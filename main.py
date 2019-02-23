@@ -241,25 +241,29 @@ class Rock(engine.Sprite):
 			relative_rotation=True,
 			relative_position=True)
 
-class Chunk(Object):
-	def __init__(self, parent, x, y, width=256, height=256):
+class Chunk(engine.Sprite):
+	def __init__(self, parent, sprite, x, y, width=256, height=256):
 		super().__init__(
+			parent=parent,
+			sprite=sprite,
 			x=x,
 			y=y,
 			layer='gnd',
-			relative_rotation=True,
 			relative_position=True)
 
 class ChunkContainer(engine.Entity):
 	def __init__(self, parent, raw_map, x=0, y=0):
+		super().__init__(
+			parent=parent,
+			x=x,
+			y=y,
+			relative_rotation=True,
+			relative_position=True)
 		self.map_name = raw_map['world_name']
 		self.map = raw_map['world_data']
-		self.chunk_size = raw_map['chunk_size']
-		self.current_player_chunk = ''
-		self.rendered_chunks = {}
 
 	def event_update(self):
-		player_chunk = str((int(player.X//self.chunk_size), int(player.Y//self.chunk_size))).replace(' ','')
+		player_chunk = (int(player.x//256), int(player.y//256))
 		if self.current_player_chunk != player_chunk:
 			surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
 			
@@ -341,6 +345,7 @@ class Server(threading.Thread):
 if __name__ == '__main__':
 	game = Game(screen_res=(1280,720))
 	player = game.world.player
+	game.world.create(ChunkContainer, raw_map=eval(open('map1.world').read()))
 	serverAddress = ('localhost', 4422)
 	nc = multiplayer.NetworkClient(1, Server)
 	server = nc.establishConnection(*serverAddress)
