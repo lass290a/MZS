@@ -242,7 +242,7 @@ class Rock(engine.Sprite):
 			relative_position=True)
 
 class Chunk(engine.Sprite):
-	def __init__(self, parent, chunk, sprite, x, y, width=256, height=256):
+	def __init__(self, parent, loc, sprite, x, y, width=256, height=256):
 		super().__init__(
 			parent=parent,
 			sprite=sprite,
@@ -268,14 +268,13 @@ class ChunkContainer(engine.Entity):
 
 	def event_update(self):
 		player_chunk = (int(player.x//256), int(player.y//256))
-		#print(int(player.x),int(player.y),player_chunk)
 		if self.current_player_chunk != player_chunk:
 			#surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
-
 			for chunk in self.map:
-				print(self.find(lambda chunk:chunk==player_chunk))
-				if chunk not in self.find(lambda chunk:chunk==player_chunk):
-					self.create(Chunk, chunk=chunk, sprite=self.map[player_chunk]['texture'], x=player_chunk[0]*256, y=player_chunk[1]*256)
+				if chunk not in self.find(lambda loc:loc==chunk):
+					self.create(Chunk, loc=chunk, sprite=self.map[chunk]['texture'], x=self.map[chunk]['x']*256, y=self.map[chunk]['y']*256)
+					print()
+					#print(self.find(lambda loc:loc))
 
 			#for chunk in list(self.rendered_chunks):
 			#	if chunk not in surrounding_chunk_names:
@@ -334,7 +333,7 @@ class Server(threading.Thread):
 
 	def fail(self, e):
 		print(e)
-		self.online = False
+		self.online = False 
 		exit()
 
 	def mainloop(self):
