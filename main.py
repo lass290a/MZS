@@ -282,15 +282,14 @@ class ChunkContainer(engine.Entity):
 
 class Server(threading.Thread):
 	def __init__(self):
-		super().__init__(target=self.mainloop)
 		self.recv = eval(nc.sendData(str({'connection':{'username':player.username}})))
-		
 		self.online = True
+		super().__init__(target=self.mainloop)
 		if 'connection' in list(self.recv.keys()) and self.recv['connection'] == 'disconnect':
 			self.fail('User is already online')
 		player.x, player.y = self.recv['connection']['position']
 		self.start()
-		
+
 	def post_request(self):
 		delivery_content = {'player_data':{'position':(round(player.x, 2), round(player.y, 2)), 'angle':round(player.rotation, 2), 'targetFired': player.weapon1.targetFired}}
 		if player.health <= 0:
@@ -312,7 +311,7 @@ class Server(threading.Thread):
 			puppet.weapon1.rightarm.tempAngle = self.recv['player_data'][puppet.username]['angle']
 			puppet.weapon1.leftarm.tempAngle = self.recv['player_data'][puppet.username]['angle']
 			puppet.weapon1.targetFired = self.recv['player_data'][puppet.username]['targetFired']
-		
+
 		for puppet in joinedList:
 			self.recv['player_data'][puppet]['x'],self.recv['player_data'][puppet]['y'] = self.recv['player_data'][puppet]['position']
 			del self.recv['player_data'][puppet]['position']
@@ -320,7 +319,7 @@ class Server(threading.Thread):
 			world.children[-1].weapon1.rightarm.tempAngle = self.recv['player_data'][puppet]['angle']
 			world.children[-1].weapon1.leftarm.tempAngle = self.recv['player_data'][puppet]['angle']
 			world.children[-1].weapon1.targetFired = self.recv['player_data'][puppet]['targetFired']
-	
+
 	def player_data(self):
 		if player.health != self.recv['self_data']['health']:
 			player.health = self.recv['self_data']['health']
@@ -340,7 +339,6 @@ class Server(threading.Thread):
 			self.puppet_controller()
 			self.player_data()
 		exit()
-
 
 if __name__ == '__main__':
 	game = Game(screen_res=(1280,720))

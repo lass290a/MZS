@@ -1,6 +1,5 @@
 import socket
 import threading
-from sys import exit
 
 class ThreadedServer:
 	def __init__(self, host, port, events, callback):
@@ -57,7 +56,10 @@ class NetworkClient:
 			self.cb_instance = self.callback()
 			return self.cb_instance
 		except Exception as errormsg:
-			self.cb_instance.fail(errormsg)
+			if type(errormsg) == socket.timeout and self.cb_instance == None:
+				raise ConnectionRefusedError('host is unreachable')
+			else:
+				self.cb_instance.fail(errormsg)
 
 	def sendData(self, strdata):
 		try:
@@ -65,18 +67,4 @@ class NetworkClient:
 			response = self.sock.recv(1024).decode()
 			return str(response)
 		except socket.timeout as errormsg:
-			self.callback().fail(errormsg)
-
-def conn_success():
-	print('CONNECTION SUCCESSFUL')
-
-def conn_error(msg):
-	print(f'CONNECTION ERROR: {msg}')
-	exit()
-
-
-if __name__ == "__main__":
-	server = NetworkClient(10, conn_success, conn_error)
-	server.establishConnection("localhost", 4422)
-	server.sendData(str({'start_connection':{'username':'alex','password':'lol'}}))
-	print(resp)
+			self.cb_instance.fail(errormsg)
