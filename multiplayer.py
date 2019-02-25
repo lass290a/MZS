@@ -56,7 +56,7 @@ class NetworkClient:
 			self.cb_instance = self.callback()
 			return self.cb_instance
 		except Exception as errormsg:
-			if type(errormsg) == socket.timeout and self.cb_instance == None:
+			if self.cb_instance == None:
 				raise ConnectionRefusedError('host is unreachable')
 			else:
 				self.cb_instance.fail(errormsg)

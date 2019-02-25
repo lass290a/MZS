@@ -4,6 +4,7 @@ import multiplayer
 import threading
 from time import sleep
 
+
 class Game(engine.Game):
 	def __init__(self, screen_res=(1280,720)):
 		super().__init__(
@@ -264,23 +265,29 @@ class ChunkContainer(engine.Entity):
 		self.map_name = raw_map['world_name']
 		self.map = raw_map['world_data']
 		self.current_player_chunk = None
+
+		self.debug_obj = self.create(Chunk, loc=(0,0), sprite='Grass_01', x=0,y=0)
 		print('Loading', self.map_name)
 
 	def event_update(self):
 		player_chunk = (int(player.x//256), int(player.y//256))
 		if self.current_player_chunk != player_chunk:
 			#surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
-			for chunk in self.map:
-				if chunk not in self.find(lambda loc:loc==chunk):
-					self.create(Chunk, loc=chunk, sprite=self.map[chunk]['texture'], x=self.map[chunk]['x']*256, y=self.map[chunk]['y']*256)
-					print()
-					#print(self.find(lambda loc:loc))
+			chunk_range = tuple(c-engine.ceil((r/2)/256) for c,r in zip(player_chunk, game.screen_res))
+			self.debug_obj.x = chunk_range[0]*256
+			self.debug_obj.y = chunk_range[1]*256
+			print(chunk_range, player_chunk, self.map[chunk_range])
+			#for chunk in self.map:
+			#	if chunk not in self.find(lambda loc:loc==chunk):
+			#		self.create(Chunk, loc=chunk, sprite=self.map[chunk]['texture'], x=self.map[chunk]['x']*256, y=self.map[chunk]['y']*256)
+			#		print(player_chunk)
+			#		#print(self.find(lambda loc:loc))
 
 			#for chunk in list(self.rendered_chunks):
 			#	if chunk not in surrounding_chunk_names:
 			#		self.rendered_chunks[chunk].delete()
 			#		del self.rendered_chunks[chunk]
-
+			print('new chunk')
 			self.current_player_chunk = player_chunk
 
 class Server(threading.Thread):

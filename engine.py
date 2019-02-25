@@ -1,5 +1,5 @@
 import arcade
-from math import cos, sin, radians, atan
+from math import cos, sin, radians, atan, ceil
 from inspect import getmro
 import glob, os
 from pyglet import gl
