@@ -268,6 +268,7 @@ class ChunkContainer(engine.Entity):
 		self.map_name = raw_map['world_name']
 		self.map = raw_map['world_data']
 		self.current_player_chunk = None
+		self.chunk_chache = {}
 
 		self.debug_obj = self.create(Chunk, loc=(0,0), sprite='Grass_01', x=0,y=0)
 		print('Loading', self.map_name)
@@ -278,14 +279,13 @@ class ChunkContainer(engine.Entity):
 		if self.current_player_chunk != player_chunk:
 			#surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
 			chunk_range = tuple(c-engine.ceil((r/2)/256) for c,r in zip(player_chunk, (1280/2, 720/2)))
-			print(chunk_range, player_chunk, self.map[chunk_range])
 			total_chunks = len(self.find(obj_type=Chunk))
-			for column in range(chunk_range[1], chunk_range[1]+engine.ceil(720/256)):
-				for row in range(chunk_range[0], chunk_range[0]+engine.ceil(1280/256)):
-					if not self.find(lambda child, loc, obj_type:obj_type in getmro(child.__class__) and loc==(row,column)):
-						print(f'creating chunk {(row, column)}')
-						self.create(Chunk, loc=(row,column), sprite=self.map[(row,column)]['texture'], x=self.map[(row,column)]['x'],y=self.map[(row,column)]['y'])
+			for column in range(chunk_range[1], chunk_range[1]+engine.ceil((720+256)/256)):
+				for row in range(chunk_range[0], chunk_range[0]+engine.ceil((1280+256)/256)):
+					if (row,column) not in self.chunk_chache and (row,column) in self.map:
+						self.chunk_chache[(row,column)] = self.create(Chunk, loc=(row,column), sprite=self.map[(row,column)]['texture'], x=self.map[(row,column)]['x'], y=self.map[(row,column)]['y'])
 			new_chunks = len(self.find(obj_type=Chunk)) - total_chunks
+			
 			#for chunk in self.map:
 			#	if chunk not in self.find(lambda loc:loc==chunk):
 			#		self.create(Chunk, loc=chunk, sprite=self.map[chunk]['texture'], x=self.map[chunk]['x']*256, y=self.map[chunk]['y']*256)
@@ -296,6 +296,7 @@ class ChunkContainer(engine.Entity):
 			#	if chunk not in surrounding_chunk_names:
 			#		self.rendered_chunks[chunk].delete()
 			#		del self.rendered_chunks[chunk]
+
 			print(f'{new_chunks} new chunks created!')
 			self.current_player_chunk = player_chunk
 
