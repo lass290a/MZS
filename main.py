@@ -248,6 +248,8 @@ class Chunk(engine.Sprite):
 			sprite=sprite,
 			x=x,
 			y=y,
+			width=256,
+			height=256,
 			layer='gnd',
 			relative_position=True)
 
@@ -271,8 +273,9 @@ class ChunkContainer(engine.Entity):
 			#surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
 
 			for chunk in self.map:
-				if chunk not in self.find(lambda chunk:chunk==player_chunk, player_chunk):
-					self.create(Chunk, name=str(chunk_name), sprite=self.map[player_chunk]['texture'], x=player_chunk[0]*256, y=player_chunk[1]*256)
+				print(self.find(lambda chunk:chunk==player_chunk))
+				if chunk not in self.find(lambda chunk:chunk==player_chunk):
+					self.create(Chunk, chunk=chunk, sprite=self.map[player_chunk]['texture'], x=player_chunk[0]*256, y=player_chunk[1]*256)
 
 			#for chunk in list(self.rendered_chunks):
 			#	if chunk not in surrounding_chunk_names:
