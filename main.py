@@ -22,7 +22,10 @@ class Game(engine.Game):
 		self.camera = self.world.player
 
 	def event_close(self):
-		server.fail('Game Closed')
+		try:
+			server.fail('Game Closed')
+		except:
+			exit()
 
 	def event_update(self, delta_time):
 		self.world.x, self.world.y = (-self.camera.x)+self.screen_res[0]//2, (-self.camera.y)+self.screen_res[1]//2
@@ -271,12 +274,17 @@ class ChunkContainer(engine.Entity):
 
 	def event_update(self):
 		player_chunk = (int(player.x//256), int(player.y//256))
+		chunk_range = (-2, -1)
 		if self.current_player_chunk != player_chunk:
 			#surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
-			chunk_range = tuple(c-engine.ceil((r/2)/256) for c,r in zip(player_chunk, game.screen_res))
-			self.debug_obj.x = chunk_range[0]*256
-			self.debug_obj.y = chunk_range[1]*256
+			chunk_range = tuple(c-engine.ceil((r/2)/256) for c,r in zip(player_chunk, (1280/2, 720/2)))
 			print(chunk_range, player_chunk, self.map[chunk_range])
+
+			for column in range(chunk_range[1], chunk_range[1]+720//256):
+				for row in range(chunk_range[0], chunk_range[0]+1280//256):
+					#if (row,column)
+					self.create(Chunk, loc=(row,column), sprite=self.map[(row,column)]['texture'], x=self.map[(row,column)]['x'],y=self.map[(row,column)]['y'])
+
 			#for chunk in self.map:
 			#	if chunk not in self.find(lambda loc:loc==chunk):
 			#		self.create(Chunk, loc=chunk, sprite=self.map[chunk]['texture'], x=self.map[chunk]['x']*256, y=self.map[chunk]['y']*256)
@@ -289,6 +297,8 @@ class ChunkContainer(engine.Entity):
 			#		del self.rendered_chunks[chunk]
 			print('new chunk')
 			self.current_player_chunk = player_chunk
+
+
 
 class Server(threading.Thread):
 	def __init__(self):
@@ -341,7 +351,7 @@ class Server(threading.Thread):
 	def fail(self, e):
 		print(e)
 		self.online = False 
-		exit()
+		#exit()
 
 	def mainloop(self):
 		while self.online:
@@ -356,5 +366,8 @@ if __name__ == '__main__':
 	game.world.create(ChunkContainer, raw_map=eval(open('map1.world').read()))
 	serverAddress = ('localhost', 4422)
 	nc = multiplayer.NetworkClient(1, Server)
-	server = nc.establishConnection(*serverAddress)
+	try:
+		server = nc.establishConnection(*serverAddress)
+	except:
+		pass
 	game.start()
