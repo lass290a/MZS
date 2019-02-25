@@ -16,7 +16,7 @@ class Game(engine.Game):
 
 		self.world = self.create(engine.Entity)
 		self.world.player = self.world.create(Player, x=0, y=0)
-		self.world.test_ground = self.world.create(Ground, x=512, y=512)
+		#self.world.test_ground = self.world.create(Ground, x=128, y=128)
 		
 		self.camera = self.world.player
 
@@ -242,7 +242,7 @@ class Rock(engine.Sprite):
 			relative_position=True)
 
 class Chunk(engine.Sprite):
-	def __init__(self, parent, sprite, x, y, width=256, height=256):
+	def __init__(self, parent, chunk, sprite, x, y, width=256, height=256):
 		super().__init__(
 			parent=parent,
 			sprite=sprite,
@@ -261,22 +261,23 @@ class ChunkContainer(engine.Entity):
 			relative_position=True)
 		self.map_name = raw_map['world_name']
 		self.map = raw_map['world_data']
+		self.current_player_chunk = None
+		print('Loading', self.map_name)
 
 	def event_update(self):
 		player_chunk = (int(player.x//256), int(player.y//256))
+		#print(int(player.x),int(player.y),player_chunk)
 		if self.current_player_chunk != player_chunk:
-			surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
-			
-			for chunk_name in surrounding_chunk_names:
-				if chunk_name in self.map and chunk_name not in self.rendered_chunks:
-					self.rendered_chunks[chunk_name] = game.world.chunks.create(Chunk, name=chunk_name, chunk_size=self.chunk_size, debug=self.debug)
-					for obj in self.map[chunk_name]:
-						self.rendered_chunks[chunk_name].create(**obj)
+			#surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
 
-			for chunk in list(self.rendered_chunks):
-				if chunk not in surrounding_chunk_names:
-					self.rendered_chunks[chunk].delete()
-					del self.rendered_chunks[chunk]
+			for chunk in self.map:
+				if chunk not in self.find(lambda chunk:chunk==player_chunk, player_chunk):
+					self.create(Chunk, name=str(chunk_name), sprite=self.map[player_chunk]['texture'], x=player_chunk[0]*256, y=player_chunk[1]*256)
+
+			#for chunk in list(self.rendered_chunks):
+			#	if chunk not in surrounding_chunk_names:
+			#		self.rendered_chunks[chunk].delete()
+			#		del self.rendered_chunks[chunk]
 
 			self.current_player_chunk = player_chunk
 
