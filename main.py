@@ -4,22 +4,21 @@ import multiplayer
 import threading
 from time import sleep
 
-
 class Game(engine.Game):
-	def __init__(self, screen_res=(1280,720)):
+	def __init__(self, screen_res=(1280,720), fullscreen=False):
 		super().__init__(
 			sprites_folder_path="Sprites",
 			width=screen_res[0],
 			height=screen_res[1],
 			layers=['gnd', 'gtop', 'main', 'top'],
-			background_color=(50, 50, 50))
+			background_color=(50, 50, 50),
+			fullscreen=fullscreen)
 		self.screen_res=screen_res
 
-		self.world = self.create(engine.Entity)
+		self.world = self.create(engine.Entity, relative_rotation=True)
 		self.world.player = self.world.create(Player, x=0, y=0)
-		#self.world.test_ground = self.world.create(Ground, x=128, y=128)
-		
-		self.camera = self.world.player
+		self.camera_target = self.world.player
+
 
 	def event_close(self):
 		try:
@@ -28,7 +27,8 @@ class Game(engine.Game):
 			exit()
 
 	def event_update(self, delta_time):
-		self.world.x, self.world.y = (-self.camera.x)+self.screen_res[0]//2, (-self.camera.y)+self.screen_res[1]//2
+		self.world.x, self.world.y = (self.screen_res[0]//2)-(self.camera_target.x*1), (self.screen_res[1]//2)-(self.camera_target.y*1)
+		#self.world.rotation += delta_time*10
 
 class Player(engine.Sprite):
 	def __init__(self, x, y, parent):
@@ -44,12 +44,11 @@ class Player(engine.Sprite):
 		self.vectory=0
 		self.pointx=0
 		self.pointy=0
-		self.deaccel=1.2
-		self.accel=0.5
+		self.deaccel=1.3
+		self.accel=1.5
 		self.point_pos = (0, 0)
 		self.weapon1 = self.create(Weapon1, targetFired=0)
 		self.head = self.create(Head)
-		#self.create(Box)
 		self.health = 100
 		self.username = 'Placeholder'
 
@@ -204,15 +203,15 @@ class Wall(engine.Sprite):
 			relative_position=True)
 
 class Ground(engine.Sprite):
-	def __init__(self, parent, x=0, y=0, rotation=0, width=50, texture='Grass_01'):
+	def __init__(self, parent, texture='Grass_01', x, y, rotation=0, width=256, height=256):
 		super().__init__(
+			parent=parent,
 			sprite=texture,
-			width=256,
-			height=256,
 			x=x,
 			y=y,
 			rotation=rotation,
-			parent=parent,
+			width=width,
+			height=height,
 			layer='gnd',
 			relative_rotation=True,
 			relative_position=True)
@@ -245,18 +244,6 @@ class Rock(engine.Sprite):
 			relative_rotation=True,
 			relative_position=True)
 
-class Chunk(engine.Sprite):
-	def __init__(self, parent, loc, sprite, x, y, width=256, height=256):
-		super().__init__(
-			parent=parent,
-			sprite=sprite,
-			x=x,
-			y=y,
-			width=256,
-			height=256,
-			layer='gnd',
-			relative_position=True)
-
 class ChunkContainer(engine.Entity):
 	def __init__(self, parent, raw_map, x=0, y=0):
 		super().__init__(
@@ -268,38 +255,38 @@ class ChunkContainer(engine.Entity):
 		self.map_name = raw_map['world_name']
 		self.map = raw_map['world_data']
 		self.current_player_chunk = None
-		self.chunk_chache = {}
+		self.unload_range = 0
+		self.chunk_cache = {}
 
 		self.debug_obj = self.create(Chunk, loc=(0,0), sprite='Grass_01', x=0,y=0)
 		print('Loading', self.map_name)
 
 	def event_update(self):
 		player_chunk = (int(player.x//256), int(player.y//256))
-		chunk_range = (-2, -1)
+		start_chunk = (-2, -1)
 		if self.current_player_chunk != player_chunk:
-			#surrounding_chunk_names = [str(tuple([p+s for p,s in zip(eval(player_chunk),surpos)])).replace(' ','') for surpos in [(-1,1),(0,1),(1,1),(-1,0),(0,0),(1,0),(-1,-1),(0,-1),(1,-1)]]
-			chunk_range = tuple(c-engine.ceil((r/2)/256) for c,r in zip(player_chunk, (1280/2, 720/2)))
-			total_chunks = len(self.find(obj_type=Chunk))
-			for column in range(chunk_range[1], chunk_range[1]+engine.ceil((720+256)/256)):
-				for row in range(chunk_range[0], chunk_range[0]+engine.ceil((1280+256)/256)):
-					if (row,column) not in self.chunk_chache and (row,column) in self.map:
-						self.chunk_chache[(row,column)] = self.create(Chunk, loc=(row,column), sprite=self.map[(row,column)]['texture'], x=self.map[(row,column)]['x'], y=self.map[(row,column)]['y'])
-			new_chunks = len(self.find(obj_type=Chunk)) - total_chunks
-			
-			#for chunk in self.map:
-			#	if chunk not in self.find(lambda loc:loc==chunk):
-			#		self.create(Chunk, loc=chunk, sprite=self.map[chunk]['texture'], x=self.map[chunk]['x']*256, y=self.map[chunk]['y']*256)
-			#		print(player_chunk)
-			#		#print(self.find(lambda loc:loc))
 
-			#for chunk in list(self.rendered_chunks):
-			#	if chunk not in surrounding_chunk_names:
-			#		self.rendered_chunks[chunk].delete()
-			#		del self.rendered_chunks[chunk]
+			# Chunk Creation
+			start_chunk = tuple(c-engine.ceil((r/2)/256) for c,r in zip(player_chunk, (game.screen_res[0], game.screen_res[1]/2)))
+			total_chunks = len(self.find(lambda child, i:i))
+			for column in range(start_chunk[1], start_chunk[1]+2+engine.ceil((game.screen_res[1])/256)):
+				for row in range(start_chunk[0], start_chunk[0]+2+engine.ceil((game.screen_res[0])/256)):
+					if (row,column) not in self.chunk_cache and (row,column) in self.map:
+						self.chunk_cache[(row,column)] = self.create(Chunk, loc=(row,column), sprite=self.map[(row,column)]['texture'], x=self.map[(row,column)]['x'], y=self.map[(row,column)]['y'])
+			new_chunks = len(self.find(lambda child, i:i)) - total_chunks
+			print(f'{new_chunks} created!')
 
-			print(f'{new_chunks} new chunks created!')
+			# Chunk Deletion
+			start_chunk = tuple(c-engine.ceil((r/2)/256) for c,r in zip(player_chunk, (game.screen_res[0], game.screen_res[1])))
+			total_chunks = len(self.find(lambda child, i:i))
+			for chunk in list(self.chunk_cache):
+				if chunk[0] < start_chunk[0]-self.unload_range or chunk[0] > start_chunk[0]+1+engine.ceil((game.screen_res[0])/256)+self.unload_range or chunk[1] < start_chunk[1]-self.unload_range or chunk[1] > start_chunk[1]+1+engine.ceil((game.screen_res[1])/256)+self.unload_range:
+					self.chunk_cache[chunk].delete()
+					del self.chunk_cache[chunk]
+			new_chunks = total_chunks - len(self.find(lambda child, i:i))
+			print(f'{new_chunks} deleted!')
+
 			self.current_player_chunk = player_chunk
-
 
 
 class Server(threading.Thread):
@@ -363,7 +350,7 @@ class Server(threading.Thread):
 		exit()
 
 if __name__ == '__main__':
-	game = Game(screen_res=(1280,720))
+	game = Game(screen_res=(1920,720), fullscreen=False)
 	player = game.world.player
 	game.world.create(ChunkContainer, raw_map=eval(open('map1.world').read()))
 	serverAddress = ('localhost', 4422)

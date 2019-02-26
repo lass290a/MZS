@@ -120,15 +120,16 @@ class SpriteList(arcade.SpriteList):
 			self.layerIndicies[layer] -= 1
 
 class Game(Entity, arcade.Window):
-	def __init__(self, width, height, sprites_folder_path, layers=['gnd', 'gtop', 'main', 'top'], update_rate=1/60, render_scale=1, background_color=(0, 0, 0)):
+	def __init__(self, width, height, sprites_folder_path, fullscreen=False, layers=['gnd', 'gtop', 'main', 'top'], update_rate=1/60, render_scale=1, background_color=(0, 0, 0)):
 		Entity.__init__(self, parent=None)
-		arcade.Window.__init__(self, width, height)
+		arcade.Window.__init__(self, width, height, fullscreen=fullscreen)
 		self.sprites = {os.path.basename(os.path.splitext(filetype)[0]):filetype for filetype in glob.iglob(sprites_folder_path+'/**/*.png', recursive=True)}
 		self.sprite_list = SpriteList(layers=layers)
 		self.update_rate = update_rate
 		self.set_update_rate(update_rate)
-		self.width = width
-		self.height = height
+		if not fullscreen:
+			self.width = width
+			self.height = height
 		self.render_scale = render_scale
 		self.background_color = background_color
 		self.frame = 0
