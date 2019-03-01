@@ -268,7 +268,7 @@ class ChunkContainer(engine.Entity):
 		start_chunk = (0, 0)
 
 		try:
-			for _ in range(5):
+			for _ in range(10):
 				chunk = self.iter_chunk.__next__()
 				if chunk not in self.chunk_cache and chunk in self.map:
 					cd = self.map[chunk]
@@ -281,7 +281,7 @@ class ChunkContainer(engine.Entity):
 
 			# Chunk Creation
 			start_chunk = tuple(c-engine.ceil((r/2)/256) for c,r in zip(player_chunk, (game.screen_res[0], game.screen_res[1])))
-			onscreen_chunks = [(row, column) for column in range(start_chunk[1], start_chunk[1]+2+engine.ceil((game.screen_res[1])/256)) for row in range(start_chunk[0], start_chunk[0]+2+engine.ceil((game.screen_res[0])/256))]
+			onscreen_chunks = [(row, column) for column in range(start_chunk[1], start_chunk[1]+engine.ceil((game.screen_res[1])/256)+2) for row in range(start_chunk[0], start_chunk[0]+engine.ceil((game.screen_res[0])/256)+2)]
 			self.iter_chunk = iter(onscreen_chunks)
 			
 			# Chunk Deletion
@@ -289,8 +289,9 @@ class ChunkContainer(engine.Entity):
 				if chunk[0] < start_chunk[0]-self.unload_range or chunk[0] > start_chunk[0]+1+engine.ceil((game.screen_res[0])/256)+self.unload_range or chunk[1] < start_chunk[1]-self.unload_range or chunk[1] > start_chunk[1]+1+engine.ceil((game.screen_res[1])/256)+self.unload_range:
 					self.chunk_cache[chunk].delete()
 					del self.chunk_cache[chunk]
-			#total_chunks = len(self.find(lambda child, i:i, i=1))
-			#print(f'{total_chunks}')
+			
+			total_chunks = len(self.find(lambda child, i:i, i=1))
+			print(f'{total_chunks}')
 			
 			self.current_player_chunk = player_chunk
 
@@ -356,7 +357,7 @@ class Server(threading.Thread):
 		exit()
 
 if __name__ == '__main__':
-	game = Game(screen_res=(1920,720), fullscreen=False)
+	game = Game(screen_res=(2560,1440), fullscreen=False)
 	player = game.world.player
 	game.world.create(ChunkContainer, raw_map=eval(open('map1.world').read()))
 	serverAddress = ('localhost', 4422)
