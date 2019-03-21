@@ -255,7 +255,7 @@ class ChunkContainer(engine.Entity):
 		self.map_name = raw_map['world_name']
 		self.map = raw_map['world_data']
 		self.current_player_chunk = None
-		self.unload_range = 0
+		self.unload_range = 2
 		self.chunk_cache = {}
 
 		self.iter_chunk = iter([])
@@ -263,37 +263,47 @@ class ChunkContainer(engine.Entity):
 		#self.debug_obj = self.create(Ground, texture='Grass_01', x=0,y=0)
 		print('Loading', self.map_name)
 
+		self.running = False
+
+	def create_chunk(self, cd):
+		self.chunk_cache[chunk] = self.create(Ground, texture=cd['texture'], x=cd['x'], y=cd['y'])
+
+	def chunk_thread(self):
+		while self.running:
+			player_chunk = (int(player.x//256), int(player.y//256))
+			start_chunk = (0, 0)
+			try:
+				for _ in range(10):
+					chunk = self.iter_chunk.__next__()
+					if chunk not in self.chunk_cache and chunk in self.map:
+						cd = self.map[chunk]
+						self.create_chunk(cd)
+						break
+			except StopIteration:
+				pass
+
+			if self.current_player_chunk != player_chunk:
+
+				# Chunk Creation
+				start_chunk = tuple(c-engine.ceil((r/2)/256) for c,r in zip(player_chunk, game.screen_res))
+				onscreen_chunks = [(row, column) for column in range(start_chunk[1], start_chunk[1]+engine.ceil((game.screen_res[1])/256)+2) for row in range(start_chunk[0], start_chunk[0]+engine.ceil((game.screen_res[0])/256)+2)]
+				self.iter_chunk = iter(onscreen_chunks)
+				
+				# Chunk Deletion
+				for chunk in list(self.chunk_cache):
+					if chunk[0] < start_chunk[0]-self.unload_range or chunk[0] > start_chunk[0]+1+engine.ceil((game.screen_res[0])/256)+self.unload_range or chunk[1] < start_chunk[1]-self.unload_range or chunk[1] > start_chunk[1]+1+engine.ceil((game.screen_res[1])/256)+self.unload_range:
+						self.chunk_cache[chunk].delete()
+						del self.chunk_cache[chunk]
+				
+				total_chunks = len(self.find(lambda child, i:i, i=1))
+				print(f'{total_chunks}')
+				
+				self.current_player_chunk = player_chunk
+
 	def event_update(self):
-		player_chunk = (int(player.x//256), int(player.y//256))
-		start_chunk = (0, 0)
-
-		try:
-			for _ in range(10):
-				chunk = self.iter_chunk.__next__()
-				if chunk not in self.chunk_cache and chunk in self.map:
-					cd = self.map[chunk]
-					self.chunk_cache[chunk] = self.create(Ground, texture=cd['texture'], x=cd['x'], y=cd['y'])
-					break
-		except StopIteration:
-			pass
-
-		if self.current_player_chunk != player_chunk:
-
-			# Chunk Creation
-			start_chunk = tuple(c-engine.ceil((r/2)/256) for c,r in zip(player_chunk, (game.screen_res[0], game.screen_res[1])))
-			onscreen_chunks = [(row, column) for column in range(start_chunk[1], start_chunk[1]+engine.ceil((game.screen_res[1])/256)+2) for row in range(start_chunk[0], start_chunk[0]+engine.ceil((game.screen_res[0])/256)+2)]
-			self.iter_chunk = iter(onscreen_chunks)
-			
-			# Chunk Deletion
-			for chunk in list(self.chunk_cache):
-				if chunk[0] < start_chunk[0]-self.unload_range or chunk[0] > start_chunk[0]+1+engine.ceil((game.screen_res[0])/256)+self.unload_range or chunk[1] < start_chunk[1]-self.unload_range or chunk[1] > start_chunk[1]+1+engine.ceil((game.screen_res[1])/256)+self.unload_range:
-					self.chunk_cache[chunk].delete()
-					del self.chunk_cache[chunk]
-			
-			total_chunks = len(self.find(lambda child, i:i, i=1))
-			print(f'{total_chunks}')
-			
-			self.current_player_chunk = player_chunk
+		if not self.running:
+			self.running = True
+			threading.Thread(target=self.chunk_thread).start()
 
 
 class Server(threading.Thread):
@@ -357,7 +367,7 @@ class Server(threading.Thread):
 		exit()
 
 if __name__ == '__main__':
-	game = Game(screen_res=(2560,1440), fullscreen=False)
+	game = Game(screen_res=(1920,1080), fullscreen=False)
 	player = game.world.player
 	game.world.create(ChunkContainer, raw_map=eval(open('map1.world').read()))
 	serverAddress = ('localhost', 4422)
